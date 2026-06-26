@@ -3,1088 +3,749 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1a0533">
 <title>⭐ Kids Dashboard</title>
 <style>
-  :root {
-    --myles: #4FC3F7; --myles-dark: #0288D1; --myles-bg: #E1F5FE;
-    --finley: #81C784; --finley-dark: #2E7D32; --finley-bg: #E8F5E9;
-    --gold: #FFD700; --red: #EF5350; --purple: #9C27B0;
-    --bg1: #1a0533; --bg2: #0d1b4f;
-    --card: rgba(255,255,255,0.07);
-    --text: #ffffff; --subtext: rgba(255,255,255,0.7);
-    --radius: 20px;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background: linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 100%);
-    min-height: 100vh; font-family: 'Segoe UI', sans-serif;
-    color: var(--text); overflow-x: hidden;
-  }
+:root {
+  --myles: #4FC3F7; --myles-dk: #0288D1;
+  --finley: #81C784; --finley-dk: #2E7D32;
+  --gold: #FFD700; --red: #EF5350; --orange: #FF7043;
+  --bg: #0f0a1e; --card: rgba(255,255,255,0.06);
+  --border: rgba(255,255,255,0.1); --text: #fff;
+  --muted: rgba(255,255,255,0.55); --radius: 22px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  background-image:radial-gradient(ellipse at 20% 0%,rgba(79,195,247,0.08) 0%,transparent 50%),
+                   radial-gradient(ellipse at 80% 10%,rgba(129,199,132,0.08) 0%,transparent 50%),
+                   radial-gradient(ellipse at 50% 100%,rgba(156,39,176,0.1) 0%,transparent 60%);
+  min-height:100vh;font-family:'Segoe UI',system-ui,sans-serif;
+  color:var(--text);overflow-x:hidden;
+}
+canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:9999}
 
-  /* ── Canvas overlay ── */
-  #confettiCanvas {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    pointer-events: none; z-index: 9999;
-  }
+/* HEADER */
+header{
+  position:sticky;top:0;z-index:100;
+  background:rgba(15,10,30,0.85);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+  padding:14px 20px;display:flex;align-items:center;justify-content:space-between;
+}
+.logo{font-size:1.25rem;font-weight:800;letter-spacing:-0.5px}
+.logo span{color:var(--gold)}
+#clock{font-size:0.8rem;color:var(--muted);text-align:right;line-height:1.4}
+.refresh{
+  background:var(--card);border:1px solid var(--border);color:var(--text);
+  border-radius:50%;width:36px;height:36px;cursor:pointer;font-size:1rem;
+  display:flex;align-items:center;justify-content:center;transition:transform .3s;flex-shrink:0;
+}
+.refresh:hover{transform:rotate(180deg)}
 
-  /* ── Header ── */
-  .header {
-    text-align: center; padding: 18px 16px 10px;
-    background: rgba(0,0,0,0.3); border-bottom: 1px solid rgba(255,255,255,0.1);
-  }
-  .header h1 { font-size: clamp(1.4rem, 4vw, 2rem); letter-spacing: 1px; }
-  .header .date { color: var(--subtext); font-size: 0.85rem; margin-top: 2px; }
-  .refresh-btn {
-    position: absolute; top: 16px; right: 16px;
-    background: rgba(255,255,255,0.1); border: none; color: white;
-    border-radius: 50%; width: 38px; height: 38px; cursor: pointer;
-    font-size: 1.1rem; display: flex; align-items: center; justify-content: center;
-    transition: transform 0.3s;
-  }
-  .refresh-btn:hover { transform: rotate(180deg); background: rgba(255,255,255,0.2); }
+/* LAYOUT */
+main{max-width:920px;margin:0 auto;padding:16px}
+.kids-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+@media(max-width:600px){.kids-grid{grid-template-columns:1fr}}
+section{margin-bottom:24px}
+.sec-title{
+  font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;
+  color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px;
+}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--border)}
 
-  /* ── Main layout ── */
-  .kids-grid {
-    display: grid; grid-template-columns: 1fr 1fr;
-    gap: 14px; padding: 16px; max-width: 900px; margin: 0 auto;
-  }
-  @media (max-width: 580px) {
-    .kids-grid { grid-template-columns: 1fr; }
-  }
+/* KID CARD */
+.kid-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:18px;transition:transform .2s;
+}
+.kid-card.myles{border-top:3px solid var(--myles)}
+.kid-card.finley{border-top:3px solid var(--finley)}
+.card-top{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.avatar{
+  font-size:2.6rem;width:58px;height:58px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  animation:float 3.5s ease-in-out infinite;flex-shrink:0;
+}
+.myles .avatar{background:rgba(79,195,247,.15)}
+.finley .avatar{background:rgba(129,199,132,.15)}
+.kid-name{font-size:1.35rem;font-weight:800}
+.kid-meta{font-size:.75rem;color:var(--muted);margin-top:2px}
+.star-day{
+  display:inline-flex;align-items:center;gap:4px;margin-top:5px;
+  background:linear-gradient(135deg,var(--gold),#FFA000);
+  color:#1a0533;border-radius:20px;padding:2px 10px;font-size:.7rem;font-weight:800;
+}
 
-  /* ── Kid card ── */
-  .kid-card {
-    background: var(--card);
-    border-radius: var(--radius); padding: 18px;
-    border: 1px solid rgba(255,255,255,0.12);
-    backdrop-filter: blur(10px); transition: transform 0.2s;
-  }
-  .kid-card.myles { border-top: 4px solid var(--myles); }
-  .kid-card.finley { border-top: 4px solid var(--finley); }
+/* stats chips */
+.stats{display:flex;gap:8px;margin-bottom:14px}
+.chip{
+  flex:1;background:rgba(0,0,0,.25);border-radius:14px;
+  padding:8px 6px;text-align:center;min-width:0;
+}
+.chip-val{font-size:1.35rem;font-weight:800;line-height:1}
+.chip-lbl{font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:3px}
+.chip.pts .chip-val{color:var(--gold)}
+.chip.streak .chip-val{color:var(--orange)}
 
-  /* Avatar & name */
-  .kid-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
-  .kid-avatar {
-    font-size: 2.8rem; width: 60px; height: 60px;
-    display: flex; align-items: center; justify-content: center;
-    border-radius: 50%; animation: float 3s ease-in-out infinite;
-  }
-  .myles .kid-avatar { background: rgba(79,195,247,0.2); }
-  .finley .kid-avatar { background: rgba(129,199,132,0.2); }
-  .kid-name { font-size: 1.4rem; font-weight: 700; }
-  .kid-age { color: var(--subtext); font-size: 0.8rem; }
+/* progress */
+.prog-wrap{margin-bottom:14px}
+.prog-meta{display:flex;justify-content:space-between;font-size:.7rem;color:var(--muted);margin-bottom:5px}
+.prog-bar{height:7px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden}
+.prog-fill{height:100%;border-radius:4px;transition:width .7s cubic-bezier(.4,0,.2,1)}
+.myles .prog-fill{background:linear-gradient(90deg,var(--myles-dk),var(--myles))}
+.finley .prog-fill{background:linear-gradient(90deg,var(--finley-dk),var(--finley))}
+.prog-next{font-size:.68rem;color:var(--muted);margin-top:4px}
 
-  /* Stats row */
-  .stats-row { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
-  .stat-chip {
-    flex: 1; min-width: 70px;
-    background: rgba(0,0,0,0.3); border-radius: 12px;
-    padding: 8px 10px; text-align: center;
-  }
-  .stat-value { font-size: 1.5rem; font-weight: 800; }
-  .stat-label { font-size: 0.65rem; color: var(--subtext); text-transform: uppercase; letter-spacing: 0.5px; }
-  .points .stat-value { color: var(--gold); }
-  .streak .stat-value { color: #FF7043; }
+/* strikes */
+.strikes-wrap{margin-bottom:16px}
+.strikes-lbl{font-size:.72rem;color:var(--muted);margin-bottom:7px}
+.dots{display:flex;gap:7px}
+.dot{
+  width:30px;height:30px;border-radius:50%;
+  border:2px solid var(--border);display:flex;align-items:center;justify-content:center;
+  font-size:.95rem;transition:all .3s;
+}
+.dot.on{border-color:var(--red);background:rgba(239,83,80,.18)}
+.dot.boom{border-color:var(--red);background:var(--red);animation:pulse .4s}
+.consequence{
+  margin-top:8px;background:rgba(239,83,80,.12);border:1px solid rgba(239,83,80,.3);
+  border-radius:10px;padding:7px 12px;font-size:.75rem;color:#ff8a80;text-align:center;
+  display:none;
+}
+.consequence.show{display:block;animation:fadeIn .3s}
 
-  /* Points progress bar */
-  .progress-section { margin-bottom: 14px; }
-  .progress-label { font-size: 0.75rem; color: var(--subtext); margin-bottom: 5px; display: flex; justify-content: space-between; }
-  .progress-bar {
-    height: 8px; background: rgba(255,255,255,0.1);
-    border-radius: 4px; overflow: hidden;
-  }
-  .progress-fill {
-    height: 100%; border-radius: 4px; transition: width 0.6s ease;
-  }
-  .myles .progress-fill { background: linear-gradient(90deg, var(--myles-dark), var(--myles)); }
-  .finley .progress-fill { background: linear-gradient(90deg, var(--finley-dark), var(--finley)); }
+/* chores */
+.chores-lbl{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:9px}
+.chores-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.chore-btn{
+  display:flex;align-items:center;gap:7px;
+  background:rgba(255,255,255,.05);border:1px solid var(--border);
+  border-radius:13px;padding:10px 9px;cursor:pointer;color:var(--text);
+  font-family:inherit;font-size:.77rem;text-align:left;transition:all .18s;
+  user-select:none;
+}
+.chore-btn:hover:not(:disabled){background:rgba(255,255,255,.12);transform:scale(1.02)}
+.chore-btn:active:not(:disabled){transform:scale(.95)}
+.chore-btn.done{background:rgba(80,200,80,.08);border-color:rgba(80,200,80,.25);color:rgba(255,255,255,.4);cursor:default}
+.chore-ico{font-size:1.2rem;flex-shrink:0}
 
-  /* Strikes */
-  .strikes-section { margin-bottom: 16px; }
-  .strikes-label { font-size: 0.75rem; color: var(--subtext); margin-bottom: 6px; }
-  .strikes-row { display: flex; gap: 6px; }
-  .strike-dot {
-    width: 28px; height: 28px; border-radius: 50%;
-    border: 2px solid rgba(255,255,255,0.2);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1rem; transition: all 0.3s;
-  }
-  .strike-dot.filled { border-color: var(--red); background: rgba(239,83,80,0.2); animation: pulse-red 0.5s; }
-  .strike-dot.last { border-color: var(--red); background: var(--red); animation: shake 0.5s; }
-  .consequence-banner {
-    background: rgba(239,83,80,0.15); border: 1px solid var(--red);
-    border-radius: 10px; padding: 8px 12px; margin-top: 8px;
-    font-size: 0.78rem; text-align: center; color: #ff8a80;
-    display: none;
-  }
-  .consequence-banner.show { display: block; animation: fadeIn 0.4s; }
+/* REWARDS */
+.rewards-scroll{
+  display:flex;gap:12px;overflow-x:auto;padding-bottom:6px;
+  scrollbar-width:thin;scrollbar-color:var(--border) transparent;
+}
+.reward-card{
+  flex-shrink:0;min-width:148px;background:var(--card);border:1px solid var(--border);
+  border-radius:18px;padding:16px 14px;text-align:center;transition:transform .2s;
+}
+.reward-card:hover{transform:translateY(-4px)}
+.reward-ico{font-size:2rem;margin-bottom:6px}
+.reward-name{font-size:.75rem;color:var(--muted);margin-bottom:6px;line-height:1.3}
+.reward-cost{font-size:1rem;font-weight:800;color:var(--gold);margin-bottom:10px}
+.claim-btn{
+  width:100%;padding:8px;border-radius:11px;border:none;cursor:pointer;
+  font-size:.75rem;font-weight:800;font-family:inherit;
+  background:linear-gradient(135deg,var(--gold),#FFA000);color:#1a0533;transition:all .2s;
+}
+.claim-btn:hover{filter:brightness(1.1);transform:scale(1.04)}
+.claim-btn:active{transform:scale(.95)}
 
-  /* Chores */
-  .chores-title { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: var(--subtext); margin-bottom: 10px; }
-  .chores-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
-  .chore-btn {
-    display: flex; align-items: center; gap: 6px;
-    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 12px; padding: 10px 10px; cursor: pointer;
-    font-size: 0.78rem; color: white; font-family: inherit;
-    transition: all 0.2s; text-align: left; user-select: none;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .chore-btn:hover { background: rgba(255,255,255,0.14); transform: scale(1.02); }
-  .chore-btn:active { transform: scale(0.96); }
-  .chore-btn .chore-emoji { font-size: 1.2rem; flex-shrink: 0; }
-  .chore-btn.done {
-    background: rgba(100,255,100,0.1); border-color: rgba(100,255,100,0.3);
-    color: rgba(255,255,255,0.5); cursor: default;
-  }
-  .chore-btn.done .chore-emoji::after { content: '✅'; font-size: 0.7rem; }
-  .chore-btn.done:hover { transform: none; }
+/* PARENT ZONE */
+.parent-wrap{
+  background:rgba(156,39,176,.08);border:1px solid rgba(156,39,176,.25);
+  border-radius:var(--radius);padding:18px;margin-bottom:24px;
+}
+.parent-head{
+  display:flex;align-items:center;justify-content:space-between;cursor:pointer;
+  user-select:none;
+}
+.parent-body{display:none;margin-top:16px}
+.parent-body.open{display:block}
+.parent-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+.pbtn{
+  padding:13px;border-radius:14px;border:none;color:var(--text);
+  font-size:.85rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s;
+}
+.pbtn:hover{filter:brightness(1.15);transform:translateY(-2px)}
+.pbtn:active{transform:scale(.95)}
+.pbtn-strike{background:linear-gradient(135deg,#EF5350,#B71C1C)}
+.pbtn-undo{background:linear-gradient(135deg,#607D8B,#37474F)}
+.pbtn-bonus{background:linear-gradient(135deg,var(--gold),#F57F17);color:#1a0533}
+.pbtn-lock{background:rgba(255,255,255,.1)}
+#unlockBtn{
+  display:block;margin:0 auto;padding:12px 28px;
+  background:rgba(156,39,176,.25);border:1px solid rgba(156,39,176,.4);
+  border-radius:14px;color:var(--text);font-size:.9rem;font-weight:700;
+  font-family:inherit;cursor:pointer;transition:all .2s;
+}
+#unlockBtn:hover{background:rgba(156,39,176,.4)}
 
-  /* ── Sections ── */
-  .section {
-    max-width: 900px; margin: 0 auto 20px; padding: 0 16px;
-  }
-  .section-title {
-    font-size: 1rem; font-weight: 700; margin-bottom: 12px;
-    display: flex; align-items: center; gap: 8px;
-  }
+/* ACTIVITY */
+.activity-list{display:flex;flex-direction:column;gap:7px}
+.act-item{
+  display:flex;align-items:center;gap:10px;
+  background:var(--card);border-radius:13px;padding:9px 13px;font-size:.8rem;
+}
+.act-kid{padding:3px 9px;border-radius:20px;font-size:.7rem;font-weight:700;flex-shrink:0}
+.act-kid.Myles{background:rgba(79,195,247,.18);color:var(--myles)}
+.act-kid.Finley{background:rgba(129,199,132,.18);color:var(--finley)}
+.act-chore{flex:1;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.act-pts{font-weight:700;color:var(--gold);flex-shrink:0}
+.act-date{font-size:.68rem;color:rgba(255,255,255,.3);flex-shrink:0}
 
-  /* ── Rewards shop ── */
-  .rewards-scroll {
-    display: flex; gap: 12px; overflow-x: auto;
-    padding-bottom: 8px; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.2) transparent;
-  }
-  .reward-card {
-    flex-shrink: 0; min-width: 150px;
-    background: rgba(255,255,255,0.07); border-radius: 16px;
-    border: 1px solid rgba(255,255,255,0.12); padding: 16px;
-    text-align: center; transition: transform 0.2s;
-  }
-  .reward-card:hover { transform: translateY(-3px); }
-  .reward-emoji { font-size: 2.2rem; margin-bottom: 6px; }
-  .reward-name { font-size: 0.78rem; margin-bottom: 6px; color: var(--subtext); }
-  .reward-cost { font-size: 1rem; font-weight: 800; color: var(--gold); margin-bottom: 10px; }
-  .redeem-btn {
-    width: 100%; padding: 8px; border-radius: 10px; border: none;
-    font-size: 0.75rem; font-weight: 700; cursor: pointer;
-    background: linear-gradient(135deg, var(--gold), #FFA000);
-    color: #1a0533; transition: all 0.2s;
-  }
-  .redeem-btn:hover { transform: scale(1.05); }
-  .redeem-btn:active { transform: scale(0.95); }
+/* MODALS */
+.overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);
+  display:none;align-items:center;justify-content:center;z-index:500;padding:16px;
+}
+.overlay.show{display:flex;animation:fadeIn .2s}
+.modal{
+  background:#16082e;border:1px solid rgba(255,255,255,.12);border-radius:26px;
+  padding:28px;width:100%;max-width:360px;text-align:center;
+}
+.modal h3{font-size:1.15rem;margin-bottom:6px}
+.modal p{color:var(--muted);font-size:.85rem;margin-bottom:20px;line-height:1.5}
 
-  /* ── Parent zone ── */
-  .parent-zone {
-    background: rgba(156,39,176,0.1); border: 1px solid rgba(156,39,176,0.3);
-    border-radius: var(--radius); padding: 18px;
-    max-width: 900px; margin: 0 auto 20px; padding: 18px 16px;
-  }
-  .parent-zone-inner { max-width: 900px; margin: 0 auto; padding: 0 16px; }
-  .parent-header {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 0; cursor: pointer;
-  }
-  .parent-content { margin-top: 16px; display: none; }
-  .parent-content.open { display: block; }
-  .parent-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
-  .parent-btn {
-    padding: 12px 16px; border-radius: 12px; border: none;
-    font-size: 0.85rem; font-weight: 700; cursor: pointer;
-    color: white; transition: all 0.2s; font-family: inherit;
-  }
-  .parent-btn:hover { transform: translateY(-2px); filter: brightness(1.15); }
-  .parent-btn:active { transform: scale(0.96); }
-  .btn-strike-add { background: linear-gradient(135deg, #EF5350, #B71C1C); }
-  .btn-strike-remove { background: linear-gradient(135deg, #78909C, #37474F); }
-  .btn-bonus { background: linear-gradient(135deg, #FFD700, #F57F17); color: #1a0533; }
+/* PIN */
+.pin-dots{font-size:2rem;letter-spacing:10px;color:var(--gold);min-height:1.5em;margin-bottom:18px}
+.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.nk{
+  padding:15px;border-radius:14px;border:1px solid var(--border);
+  background:rgba(255,255,255,.06);color:var(--text);font-size:1.25rem;
+  font-weight:700;cursor:pointer;transition:all .15s;font-family:inherit;
+}
+.nk:hover{background:rgba(255,255,255,.14)}
+.nk:active{transform:scale(.9)}
+.nk.del{font-size:.95rem;color:var(--muted)}
+.pin-err{color:var(--red);font-size:.82rem;margin-top:10px;min-height:1.2em}
 
-  /* PIN modal */
-  .modal-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.8);
-    display: flex; align-items: center; justify-content: center;
-    z-index: 1000; display: none;
-  }
-  .modal-overlay.show { display: flex; animation: fadeIn 0.2s; }
-  .modal {
-    background: #1e0945; border-radius: 24px; padding: 28px;
-    width: min(350px, 90vw); text-align: center;
-    border: 1px solid rgba(255,255,255,0.15);
-  }
-  .modal h3 { font-size: 1.2rem; margin-bottom: 8px; }
-  .modal p { color: var(--subtext); font-size: 0.85rem; margin-bottom: 20px; }
-  .pin-display {
-    font-size: 2rem; letter-spacing: 12px; margin-bottom: 20px;
-    color: var(--gold); min-height: 1.5em;
-  }
-  .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-  .num-btn {
-    padding: 16px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.15);
-    background: rgba(255,255,255,0.07); color: white;
-    font-size: 1.3rem; font-weight: 700; cursor: pointer;
-    transition: all 0.15s; font-family: inherit;
-  }
-  .num-btn:hover { background: rgba(255,255,255,0.15); }
-  .num-btn:active { transform: scale(0.92); background: rgba(255,255,255,0.2); }
-  .num-btn.delete { font-size: 1rem; color: var(--subtext); }
-  .pin-error { color: var(--red); font-size: 0.85rem; margin-top: 10px; min-height: 1.2em; }
-  .modal-close {
-    margin-top: 16px; background: none; border: none; color: var(--subtext);
-    cursor: pointer; font-size: 0.85rem; text-decoration: underline;
-  }
+/* Action / redeem */
+.kid-btns{display:flex;gap:10px;margin-bottom:16px}
+.kid-pick{
+  flex:1;padding:13px;border-radius:14px;border:2px solid var(--border);
+  background:rgba(255,255,255,.05);color:var(--text);font-size:.95rem;
+  font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s;
+}
+.kid-pick.sel{border-color:var(--gold);background:rgba(255,215,0,.1)}
+.modal-input{
+  width:100%;padding:12px 15px;border-radius:13px;border:1px solid var(--border);
+  background:rgba(255,255,255,.07);color:var(--text);font-size:.9rem;
+  font-family:inherit;margin-bottom:11px;outline:none;
+}
+.modal-input::placeholder{color:var(--muted)}
+.modal-sub{
+  width:100%;padding:14px;border-radius:14px;border:none;
+  font-size:.95rem;font-weight:800;font-family:inherit;cursor:pointer;
+  background:linear-gradient(135deg,var(--gold),#FFA000);color:#1a0533;
+  transition:all .2s;margin-bottom:6px;
+}
+.modal-sub:hover{transform:translateY(-2px);filter:brightness(1.08)}
+.modal-cancel{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.82rem;text-decoration:underline;padding:4px}
 
-  /* Action modal */
-  .action-modal .modal { max-width: 380px; }
-  .kid-select { display: flex; gap: 12px; justify-content: center; margin-bottom: 16px; }
-  .kid-select-btn {
-    flex: 1; padding: 14px; border-radius: 14px; border: 2px solid rgba(255,255,255,0.1);
-    background: rgba(255,255,255,0.05); color: white; cursor: pointer;
-    font-size: 1rem; font-weight: 700; font-family: inherit; transition: all 0.2s;
-  }
-  .kid-select-btn.selected { border-color: var(--gold); background: rgba(255,215,0,0.1); }
-  .action-input {
-    width: 100%; padding: 12px 16px; border-radius: 12px;
-    border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.07);
-    color: white; font-size: 0.95rem; font-family: inherit; margin-bottom: 12px;
-    outline: none;
-  }
-  .action-input::placeholder { color: var(--subtext); }
-  .action-submit {
-    width: 100%; padding: 14px; border-radius: 14px; border: none;
-    font-size: 1rem; font-weight: 800; cursor: pointer; font-family: inherit;
-    background: linear-gradient(135deg, var(--gold), #FFA000);
-    color: #1a0533; transition: all 0.2s;
-  }
-  .action-submit:hover { transform: translateY(-2px); }
+/* CELEBRATE */
+#celebrate{
+  position:fixed;inset:0;display:none;align-items:center;
+  justify-content:center;z-index:9990;pointer-events:none;
+}
+#celebrate.show{display:flex}
+.cel-inner{text-align:center;animation:popIn .4s cubic-bezier(.175,.885,.32,1.275)}
+.cel-emo{font-size:min(8rem,18vw);display:block;margin-bottom:8px}
+.cel-txt{
+  font-size:min(2rem,6vw);font-weight:900;
+  background:linear-gradient(135deg,var(--gold),#FF6B35,var(--gold));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
 
-  /* ── Activity feed ── */
-  .activity-list { display: flex; flex-direction: column; gap: 8px; }
-  .activity-item {
-    display: flex; align-items: center; gap: 12px;
-    background: rgba(255,255,255,0.05); border-radius: 12px; padding: 10px 14px;
-    font-size: 0.82rem;
-  }
-  .activity-kid {
-    font-weight: 700; font-size: 0.75rem; padding: 3px 8px;
-    border-radius: 20px; flex-shrink: 0;
-  }
-  .activity-kid.Myles { background: rgba(79,195,247,0.2); color: var(--myles); }
-  .activity-kid.Finley { background: rgba(129,199,132,0.2); color: var(--finley); }
-  .activity-chore { flex: 1; color: var(--subtext); }
-  .activity-pts { font-weight: 700; color: var(--gold); flex-shrink: 0; }
-  .activity-date { font-size: 0.7rem; color: rgba(255,255,255,0.35); flex-shrink: 0; }
+/* POINT POP */
+.ptpop{
+  position:fixed;font-size:1.4rem;font-weight:900;color:var(--gold);
+  pointer-events:none;z-index:9998;transform:translateX(-50%);
+  animation:floatUp 1.2s ease forwards;
+}
 
-  /* ── Celebration overlay ── */
-  .celebration {
-    position: fixed; inset: 0; z-index: 9990;
-    display: flex; align-items: center; justify-content: center;
-    pointer-events: none; display: none;
-  }
-  .celebration.show { display: flex; }
-  .celebration-content {
-    text-align: center; animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  }
-  .celebration-emoji { font-size: clamp(5rem, 15vw, 8rem); display: block; }
-  .celebration-text {
-    font-size: clamp(1.5rem, 5vw, 2.5rem); font-weight: 900;
-    text-shadow: 0 0 30px rgba(255,215,0,0.8);
-    background: linear-gradient(135deg, #FFD700, #FF6B35, #FFD700);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
+/* LOADING */
+#loading{text-align:center;padding:60px 20px;font-size:1.1rem;color:var(--muted)}
+.spin{display:inline-block;animation:spin 1s linear infinite}
 
-  /* ── Point popup ── */
-  .point-popup {
-    position: fixed; font-size: 1.5rem; font-weight: 900;
-    color: var(--gold); text-shadow: 0 2px 10px rgba(0,0,0,0.5);
-    pointer-events: none; z-index: 9998; animation: floatUp 1.2s ease forwards;
-  }
-  .streak-popup {
-    position: fixed; font-size: 1.2rem; font-weight: 900;
-    color: #FF7043; pointer-events: none; z-index: 9998;
-    animation: floatUp 1.4s ease forwards;
-  }
+footer{text-align:center;padding:20px;font-size:.7rem;color:rgba(255,255,255,.18)}
 
-  /* ── Loading ── */
-  .loading {
-    text-align: center; padding: 60px 20px;
-    color: var(--subtext); font-size: 1.1rem;
-  }
-  .loading .spin { display: inline-block; animation: spin 1s linear infinite; }
-
-  /* ── Animations ── */
-  @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-6px); }
-  }
-  @keyframes pulse-red {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.3); }
-    100% { transform: scale(1); }
-  }
-  @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    20% { transform: translateX(-8px); }
-    40% { transform: translateX(8px); }
-    60% { transform: translateX(-6px); }
-    80% { transform: translateX(6px); }
-  }
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-  @keyframes popIn {
-    from { transform: scale(0.3); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
-  }
-  @keyframes floatUp {
-    0% { opacity: 1; transform: translateY(0); }
-    100% { opacity: 0; transform: translateY(-80px); }
-  }
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-  @keyframes bounce {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.15); }
-  }
-  .bounce { animation: bounce 0.4s ease; }
-
-  /* ── Star-of-day badge ── */
-  .star-badge {
-    display: inline-flex; align-items: center; gap: 4px;
-    background: linear-gradient(135deg, var(--gold), #FFA000);
-    color: #1a0533; border-radius: 20px; padding: 3px 10px;
-    font-size: 0.72rem; font-weight: 800; margin-top: 4px;
-  }
-
-  /* ── Footer ── */
-  .footer { text-align: center; padding: 20px; color: rgba(255,255,255,0.2); font-size: 0.7rem; }
+/* KEYFRAMES */
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.35)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes popIn{from{transform:scale(.2);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes floatUp{0%{opacity:1;transform:translateX(-50%) translateY(0)}100%{opacity:0;transform:translateX(-50%) translateY(-90px)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes bounce{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
+.bounce{animation:bounce .4s ease}
 </style>
 </head>
 <body>
 
-<canvas id="confettiCanvas"></canvas>
+<canvas id="fx"></canvas>
 
-<!-- HEADER -->
-<div class="header" style="position:relative;">
-  <h1>🌟 Family Dashboard</h1>
-  <div class="date" id="dateDisplay"></div>
-  <button class="refresh-btn" onclick="loadData()" title="Refresh">↻</button>
-</div>
+<header>
+  <div class="logo">🌟 <span>Family</span> Dashboard</div>
+  <div id="clock"></div>
+  <button class="refresh" onclick="loadAll()" title="Refresh">↻</button>
+</header>
 
-<!-- MAIN CONTENT -->
-<div id="mainContent">
-  <div class="loading"><span class="spin">⭐</span> Loading the dashboard…</div>
-</div>
-
-<!-- CELEBRATION OVERLAY -->
-<div class="celebration" id="celebration">
-  <div class="celebration-content">
-    <span class="celebration-emoji" id="celebEmoji">🎉</span>
-    <div class="celebration-text" id="celebText">Amazing!</div>
-  </div>
-</div>
-
-<!-- PIN MODAL -->
-<div class="modal-overlay" id="pinModal">
-  <div class="modal">
-    <h3>🔐 Parent Zone</h3>
-    <p>Enter your 4-digit PIN to continue</p>
-    <div class="pin-display" id="pinDisplay">_ _ _ _</div>
-    <div class="numpad">
-      <button class="num-btn" onclick="pinPress('1')">1</button>
-      <button class="num-btn" onclick="pinPress('2')">2</button>
-      <button class="num-btn" onclick="pinPress('3')">3</button>
-      <button class="num-btn" onclick="pinPress('4')">4</button>
-      <button class="num-btn" onclick="pinPress('5')">5</button>
-      <button class="num-btn" onclick="pinPress('6')">6</button>
-      <button class="num-btn" onclick="pinPress('7')">7</button>
-      <button class="num-btn" onclick="pinPress('8')">8</button>
-      <button class="num-btn" onclick="pinPress('9')">9</button>
-      <button class="num-btn delete" onclick="pinPress('del')">⌫</button>
-      <button class="num-btn" onclick="pinPress('0')">0</button>
-      <button class="num-btn" onclick="pinPress('ok')">OK</button>
-    </div>
-    <div class="pin-error" id="pinError"></div>
-    <button class="modal-close" onclick="closePin()">Cancel</button>
-  </div>
-</div>
-
-<!-- ACTION MODAL (strike / bonus) -->
-<div class="modal-overlay action-modal" id="actionModal">
-  <div class="modal">
-    <h3 id="actionTitle">Add Strike</h3>
-    <p id="actionDesc">Select a kid and enter a reason</p>
-    <div class="kid-select">
-      <button class="kid-select-btn" id="selectMyles" onclick="selectKid('Myles')">🦸 Myles</button>
-      <button class="kid-select-btn" id="selectFinley" onclick="selectKid('Finley')">🐸 Finley</button>
-    </div>
-    <input class="action-input" id="actionInput" placeholder="Reason / notes (optional)">
-    <input class="action-input" id="bonusAmtInput" placeholder="Points to award" type="number" style="display:none">
-    <button class="action-submit" id="actionSubmit" onclick="submitAction()">Confirm</button>
-    <button class="modal-close" onclick="closeAction()">Cancel</button>
-  </div>
-</div>
-
-<!-- REDEEM MODAL -->
-<div class="modal-overlay action-modal" id="redeemModal">
-  <div class="modal">
-    <h3>🎁 Claim Reward</h3>
-    <p id="redeemDesc">Which kid is claiming this?</p>
-    <div class="kid-select">
-      <button class="kid-select-btn" id="redeemMyles" onclick="selectRedeemKid('Myles')">🦸 Myles</button>
-      <button class="kid-select-btn" id="redeemFinley" onclick="selectRedeemKid('Finley')">🐸 Finley</button>
-    </div>
-    <button class="action-submit" id="redeemSubmit" onclick="submitRedeem()">Claim it! 🎉</button>
-    <button class="modal-close" onclick="closeRedeem()">Cancel</button>
-  </div>
-</div>
-
-<script>
-// ════════════════════════════════════════════════════════════════
-//  STATE
-// ════════════════════════════════════════════════════════════════
-let state = { kids: [], chores: [], rewards: [], config: {}, completedToday: {} };
-let pinBuffer = '';
-let pinCallback = null;
-let parentUnlocked = false;
-let currentAction = null; // { type: 'strike'|'removeStrike'|'bonus' }
-let currentReward = null; // { name, cost, emoji }
-let selectedKid = null;
-let selectedRedeemKid = null;
-
-// ════════════════════════════════════════════════════════════════
-//  INIT
-// ════════════════════════════════════════════════════════════════
-document.addEventListener('DOMContentLoaded', () => {
-  updateDate();
-  loadData();
-  setInterval(updateDate, 60000);
-});
-
-function updateDate() {
-  const now = new Date();
-  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  document.getElementById('dateDisplay').textContent =
-    `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
-}
-
-function loadData() {
-  document.getElementById('mainContent').innerHTML =
-    '<div class="loading"><span class="spin">⭐</span> Loading…</div>';
-  google.script.run
-    .withSuccessHandler(data => { state = data; renderAll(); })
-    .withFailureHandler(err => {
-      document.getElementById('mainContent').innerHTML =
-        `<div class="loading">⚠️ Couldn't load data.<br><small>${err.message}</small></div>`;
-    })
-    .getData();
-}
-
-// ════════════════════════════════════════════════════════════════
-//  RENDER
-// ════════════════════════════════════════════════════════════════
-function renderAll() {
-  const mc = document.getElementById('mainContent');
-  mc.innerHTML = `
-    <div class="kids-grid">${state.kids.map(renderKidCard).join('')}</div>
-    ${renderRewards()}
-    ${renderParentZone()}
-    ${renderActivity()}
-    <div class="footer">🌟 Keep up the great work! 🌟</div>
-  `;
-  loadActivity();
-}
-
-function renderKidCard(kid) {
-  const cls = kid.name.toLowerCase();
-  const strikeLimit = parseInt(state.config.strike_limit) || 5;
-  const hitLimit = kid.strikes >= strikeLimit;
-
-  // Strike dots
-  const dots = Array.from({length: strikeLimit}, (_, i) => {
-    const filled = i < kid.strikes;
-    const isLast = filled && i === strikeLimit - 1;
-    return `<div class="strike-dot ${filled ? (isLast ? 'last' : 'filled') : ''}">${filled ? '⚡' : ''}</div>`;
-  }).join('');
-
-  // Points progress toward next reward
-  const nextReward = state.rewards.find(r => r.cost > kid.points);
-  const prevCost = nextReward ? (state.rewards[state.rewards.indexOf(nextReward) - 1]?.cost || 0) : 0;
-  const progress = nextReward
-    ? Math.min(100, ((kid.points - prevCost) / (nextReward.cost - prevCost)) * 100)
-    : 100;
-  const progressLabel = nextReward
-    ? `${nextReward.emoji} ${nextReward.name} — ${nextReward.cost - kid.points} pts to go`
-    : '🏆 All rewards unlocked!';
-
-  // Chores for this kid
-  const kidChores = state.chores.filter(c => c.kids === 'Both' || c.kids === kid.name);
-  const choreButtons = kidChores.map(c => {
-    const done = state.completedToday[`${kid.name}|${c.name}`];
-    return `<button class="chore-btn ${done ? 'done' : ''}"
-      onclick="${done ? '' : `doChore('${kid.name}', '${escJs(c.name)}', this)`}"
-      ${done ? 'disabled' : ''}>
-      <span class="chore-emoji">${done ? '' : c.emoji}</span>
-      <span>${done ? '✅ ' : ''}${c.name}</span>
-    </button>`;
-  }).join('');
-
-  // Star of day
-  const doneCount = kidChores.filter(c => state.completedToday[`${kid.name}|${c.name}`]).length;
-  const starBadge = doneCount === kidChores.length && doneCount > 0
-    ? `<div class="star-badge">⭐ Star of the Day!</div>` : '';
-
-  return `
-  <div class="kid-card ${cls}" id="card-${kid.name}">
-    <div class="kid-header">
-      <div class="kid-avatar">${kid.avatar}</div>
-      <div>
-        <div class="kid-name">${kid.name}</div>
-        <div class="kid-age">Age ${kid.age} 🎂</div>
-        ${starBadge}
+<main>
+  <div id="loading"><span class="spin">⭐</span> Loading…</div>
+  <div id="app" style="display:none">
+    <section><div class="kids-grid" id="kidsGrid"></div></section>
+    <section>
+      <div class="sec-title">🎁 Rewards Shop</div>
+      <div class="rewards-scroll" id="rewardsRow"></div>
+    </section>
+    <div class="parent-wrap">
+      <div class="parent-head" onclick="toggleParent()">
+        <div class="sec-title" style="margin:0">🔐 Parent Zone</div>
+        <span id="parentChev" style="color:var(--muted);font-size:1.1rem">▼</span>
       </div>
-    </div>
-
-    <div class="stats-row">
-      <div class="stat-chip points">
-        <div class="stat-value">⭐ ${kid.points}</div>
-        <div class="stat-label">Points</div>
-      </div>
-      <div class="stat-chip streak">
-        <div class="stat-value">🔥 ${kid.streak}</div>
-        <div class="stat-label">Day Streak</div>
-      </div>
-    </div>
-
-    <div class="progress-section">
-      <div class="progress-label">
-        <span>Next reward</span>
-        <span>${kid.points} pts</span>
-      </div>
-      <div class="progress-bar">
-        <div class="progress-fill" style="width:${progress}%"></div>
-      </div>
-      <div style="font-size:0.7rem; color:var(--subtext); margin-top:4px;">${progressLabel}</div>
-    </div>
-
-    <div class="strikes-section">
-      <div class="strikes-label">⚡ Strikes this week (${kid.strikes}/${strikeLimit})</div>
-      <div class="strikes-row">${dots}</div>
-      <div class="consequence-banner ${hitLimit ? 'show' : ''}" id="consequence-${kid.name}">
-        😔 ${state.config.strike_consequence || 'No treat this weekend!'}
-      </div>
-    </div>
-
-    <div class="chores-title">Today's Chores (${doneCount}/${kidChores.length})</div>
-    <div class="chores-grid">${choreButtons}</div>
-  </div>`;
-}
-
-function renderRewards() {
-  const cards = state.rewards.map(r => `
-    <div class="reward-card">
-      <div class="reward-emoji">${r.emoji}</div>
-      <div class="reward-name">${r.name}</div>
-      <div class="reward-cost">⭐ ${r.cost}</div>
-      <button class="redeem-btn" onclick="openRedeem('${escJs(r.name)}', ${r.cost}, '${r.emoji}')">
-        Claim! 🎁
-      </button>
-    </div>`).join('');
-  return `
-  <div class="section">
-    <div class="section-title">🎁 Rewards Shop</div>
-    <div class="rewards-scroll">${cards}</div>
-  </div>`;
-}
-
-function renderParentZone() {
-  return `
-  <div style="max-width:900px;margin:0 auto 20px;padding:0 16px;">
-    <div style="background:rgba(156,39,176,0.1);border:1px solid rgba(156,39,176,0.3);border-radius:20px;padding:18px;">
-      <div class="parent-header" onclick="toggleParentZone()">
-        <div class="section-title" style="margin:0;">🔐 Parent Zone</div>
-        <span id="parentChevron" style="font-size:1.2rem;color:var(--subtext);">▼</span>
-      </div>
-      <div class="parent-content" id="parentContent">
-        <div id="parentLocked" style="text-align:center;padding:16px;">
-          <p style="color:var(--subtext);margin-bottom:14px;font-size:0.9rem;">Enter PIN to manage strikes and bonuses</p>
-          <button class="parent-btn btn-bonus" onclick="requirePin(openParentControls)" style="max-width:200px;margin:0 auto;display:block;">
-            🔓 Unlock Parent Zone
-          </button>
+      <div class="parent-body" id="parentBody">
+        <div id="parentLock" style="text-align:center;padding:10px 0">
+          <p style="color:var(--muted);font-size:.85rem;margin-bottom:14px">PIN required to manage strikes &amp; bonuses</p>
+          <button id="unlockBtn" onclick="requirePin(openParentControls)">🔓 Unlock Parent Zone</button>
         </div>
-        <div id="parentControls" style="display:none;">
+        <div id="parentCtrls" style="display:none">
           <div class="parent-grid">
-            <button class="parent-btn btn-strike-add" onclick="openAction('strike')">⚡ Add Strike</button>
-            <button class="parent-btn btn-strike-remove" onclick="openAction('removeStrike')">↩️ Remove Strike</button>
-            <button class="parent-btn btn-bonus" onclick="openAction('bonus')">⭐ Award Bonus</button>
-            <button class="parent-btn" style="background:rgba(255,255,255,0.1);" onclick="lockParent()">🔒 Lock</button>
+            <button class="pbtn pbtn-strike" onclick="openAction('strike')">⚡ Add Strike</button>
+            <button class="pbtn pbtn-undo"   onclick="openAction('removeStrike')">↩️ Remove Strike</button>
+            <button class="pbtn pbtn-bonus"  onclick="openAction('bonus')">⭐ Award Bonus</button>
+            <button class="pbtn pbtn-lock"   onclick="lockParent()">🔒 Lock</button>
           </div>
         </div>
       </div>
     </div>
-  </div>`;
-}
+    <section>
+      <div class="sec-title">📋 Recent Activity</div>
+      <div class="activity-list" id="actList">
+        <div style="color:var(--muted);text-align:center;padding:10px;font-size:.85rem">Loading…</div>
+      </div>
+    </section>
+  </div>
+</main>
 
-function renderActivity() {
-  return `
-  <div class="section">
-    <div class="section-title">📋 Recent Activity</div>
-    <div class="activity-list" id="activityList">
-      <div style="color:var(--subtext);font-size:0.85rem;text-align:center;padding:10px;">Loading…</div>
+<footer>🌟 Keep up the amazing work, team! 🌟</footer>
+
+<!-- CELEBRATE -->
+<div id="celebrate">
+  <div class="cel-inner">
+    <span class="cel-emo" id="celEmo">🎉</span>
+    <div class="cel-txt" id="celTxt">Amazing!</div>
+  </div>
+</div>
+
+<!-- PIN MODAL -->
+<div class="overlay" id="pinOverlay">
+  <div class="modal">
+    <h3>🔐 Parent Zone</h3>
+    <p>Enter your 4-digit PIN</p>
+    <div class="pin-dots" id="pinDots">_ _ _ _</div>
+    <div class="numpad">
+      <button class="nk" onclick="pk('1')">1</button>
+      <button class="nk" onclick="pk('2')">2</button>
+      <button class="nk" onclick="pk('3')">3</button>
+      <button class="nk" onclick="pk('4')">4</button>
+      <button class="nk" onclick="pk('5')">5</button>
+      <button class="nk" onclick="pk('6')">6</button>
+      <button class="nk" onclick="pk('7')">7</button>
+      <button class="nk" onclick="pk('8')">8</button>
+      <button class="nk" onclick="pk('9')">9</button>
+      <button class="nk del" onclick="pk('del')">⌫</button>
+      <button class="nk" onclick="pk('0')">0</button>
+      <button class="nk" onclick="pk('ok')">✓</button>
     </div>
+    <div class="pin-err" id="pinErr"></div>
+    <button class="modal-cancel" onclick="closePin()" style="margin-top:12px">Cancel</button>
+  </div>
+</div>
+
+<!-- ACTION MODAL -->
+<div class="overlay" id="actionOverlay">
+  <div class="modal">
+    <h3 id="actTitle">Add Strike</h3>
+    <p id="actDesc">Select a kid</p>
+    <div class="kid-btns">
+      <button class="kid-pick" id="pickMyles"  onclick="pickKid('Myles')">🦸 Myles</button>
+      <button class="kid-pick" id="pickFinley" onclick="pickKid('Finley')">🐸 Finley</button>
+    </div>
+    <input class="modal-input" id="actReason" placeholder="Reason / notes (optional)">
+    <input class="modal-input" id="actPoints" placeholder="Points to award" type="number" min="1" style="display:none">
+    <button class="modal-sub" onclick="submitAction()">Confirm ✓</button>
+    <button class="modal-cancel" onclick="closeAction()">Cancel</button>
+  </div>
+</div>
+
+<!-- REDEEM MODAL -->
+<div class="overlay" id="redeemOverlay">
+  <div class="modal">
+    <h3>🎁 Claim Reward</h3>
+    <p id="redeemDesc">Who is claiming this?</p>
+    <div class="kid-btns">
+      <button class="kid-pick" id="redMyles"  onclick="pickRedeem('Myles')">🦸 Myles</button>
+      <button class="kid-pick" id="redFinley" onclick="pickRedeem('Finley')">🐸 Finley</button>
+    </div>
+    <button class="modal-sub" onclick="submitRedeem()">Claim it! 🎉</button>
+    <button class="modal-cancel" onclick="closeRedeem()">Cancel</button>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ───────────────────────────────────────────────────────────
+// Update this URL if you ever redeploy the Apps Script as a new deployment
+const API = 'https://script.google.com/macros/s/AKfycbwngRP4y6aTyoKOjoH_kfeYCxz45Sk6wBl2TVegFTZwNWc77wiOh4X9YA2td4_pbmVc6A/exec';
+
+// ── STATE ────────────────────────────────────────────────────────────
+let S = { kids:[], chores:[], rewards:[], config:{}, completedToday:{} };
+let pinBuf='', pinCb=null;
+let curAction=null, selKid=null, selRedKid=null, curReward=null;
+
+// ── INIT ─────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => { tick(); setInterval(tick,30000); loadAll(); });
+
+function tick() {
+  const n=new Date();
+  const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const mo=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.getElementById('clock').innerHTML=`${days[n.getDay()]}<br>${n.getDate()} ${mo[n.getMonth()]} ${n.getFullYear()}`;
+}
+
+// ── API ──────────────────────────────────────────────────────────────
+async function api(params) {
+  const url = API + '?' + new URLSearchParams(params);
+  const r = await fetch(url, { redirect:'follow' });
+  if (!r.ok) throw new Error('Network error ' + r.status);
+  return r.json();
+}
+
+// ── LOAD ─────────────────────────────────────────────────────────────
+async function loadAll() {
+  document.getElementById('loading').style.display='block';
+  document.getElementById('app').style.display='none';
+  document.getElementById('loading').innerHTML='<span class="spin">⭐</span> Loading…';
+  try {
+    const data = await api({ action:'getData' });
+    if (!data.success) throw new Error(data.error||'API error');
+    S = data;
+    renderApp();
+    document.getElementById('loading').style.display='none';
+    document.getElementById('app').style.display='block';
+    loadActivity();
+  } catch(e) {
+    document.getElementById('loading').innerHTML=
+      `⚠️ Could not connect to Google Sheets.<br><small style="font-size:.75rem">${e.message}</small><br><br>
+       <button onclick="loadAll()" style="padding:10px 24px;border-radius:12px;border:none;background:var(--gold);color:#1a0533;font-weight:800;cursor:pointer;font-size:.9rem">Try Again</button>`;
+  }
+}
+
+// ── RENDER ───────────────────────────────────────────────────────────
+function renderApp() {
+  document.getElementById('kidsGrid').innerHTML = S.kids.map(renderKid).join('');
+  renderRewards();
+}
+
+function renderKid(kid) {
+  const lim = parseInt(S.config.strike_limit)||5;
+  const hit = kid.strikes >= lim;
+  const dots = Array.from({length:lim},(_,i)=>{
+    const on=i<kid.strikes, boom=on&&i===lim-1;
+    return `<div class="dot ${on?(boom?'boom':'on'):''}">${on?'⚡':''}</div>`;
+  }).join('');
+  const next = S.rewards.find(r=>r.cost>kid.points);
+  const prev = next ? (S.rewards[S.rewards.indexOf(next)-1]?.cost||0) : 0;
+  const pct  = next ? Math.min(100,(kid.points-prev)/(next.cost-prev)*100) : 100;
+  const nextLabel = next ? `${next.emoji} ${next.name} — ${next.cost-kid.points} pts away` : '🏆 All rewards unlocked!';
+  const kidChores = S.chores.filter(c=>c.kids==='Both'||c.kids===kid.name);
+  const doneCount = kidChores.filter(c=>S.completedToday[`${kid.name}|${c.name}`]).length;
+  const allDone = doneCount===kidChores.length && kidChores.length>0;
+  const choreHTML = kidChores.map(c=>{
+    const done=S.completedToday[`${kid.name}|${c.name}`];
+    const safeChore = c.name.replace(/'/g,"\\'");
+    return `<button class="chore-btn ${done?'done':''}" ${done?'disabled':''} onclick="${done?'':``doChore('${kid.name}','${safeChore}',this)``}">
+      <span class="chore-ico">${done?'✅':c.emoji}</span><span>${c.name}</span>
+    </button>`;
+  }).join('');
+  const cls=kid.name.toLowerCase();
+  return `<div class="kid-card ${cls}" id="card-${kid.name}">
+    <div class="card-top">
+      <div class="avatar">${kid.avatar}</div>
+      <div>
+        <div class="kid-name">${kid.name}</div>
+        <div class="kid-meta">Age ${kid.age} 🎂 · ${kid.totalEarned} pts earned total</div>
+        ${allDone?'<div class="star-day">⭐ Star of the Day!</div>':''}
+      </div>
+    </div>
+    <div class="stats">
+      <div class="chip pts"><div class="chip-val" id="pts-${kid.name}">⭐ ${kid.points}</div><div class="chip-lbl">Points</div></div>
+      <div class="chip streak"><div class="chip-val" id="streak-${kid.name}">🔥 ${kid.streak}</div><div class="chip-lbl">Day Streak</div></div>
+      <div class="chip"><div class="chip-val">${doneCount}/${kidChores.length}</div><div class="chip-lbl">Chores Today</div></div>
+    </div>
+    <div class="prog-wrap">
+      <div class="prog-meta"><span>Next reward</span><span>${kid.points} pts</span></div>
+      <div class="prog-bar"><div class="prog-fill" id="prog-${kid.name}" style="width:${pct}%"></div></div>
+      <div class="prog-next">${nextLabel}</div>
+    </div>
+    <div class="strikes-wrap">
+      <div class="strikes-lbl">⚡ Strikes this week (${kid.strikes}/${lim})</div>
+      <div class="dots" id="dots-${kid.name}">${dots}</div>
+      <div class="consequence ${hit?'show':''}" id="con-${kid.name}">😔 ${S.config.strike_consequence||'No treat this weekend!'}</div>
+    </div>
+    <div class="chores-lbl">Today's Chores</div>
+    <div class="chores-grid" id="chores-${kid.name}">${choreHTML}</div>
   </div>`;
 }
 
-function loadActivity() {
-  google.script.run
-    .withSuccessHandler(items => {
-      const list = document.getElementById('activityList');
-      if (!list) return;
-      if (!items.length) {
-        list.innerHTML = '<div style="color:var(--subtext);font-size:0.85rem;text-align:center;padding:10px;">No activity yet — get choring! 💪</div>';
-        return;
-      }
-      list.innerHTML = items.map(a => `
-        <div class="activity-item">
-          <span class="activity-kid ${a.kid}">${a.kid}</span>
-          <span class="activity-chore">${a.chore}</span>
-          <span class="activity-pts">${a.points > 0 ? '+' : ''}${a.points}⭐</span>
-          <span class="activity-date">${a.date}</span>
-        </div>`).join('');
-    })
-    .getRecentActivity();
+function renderRewards() {
+  document.getElementById('rewardsRow').innerHTML = S.rewards.map(r=>`
+    <div class="reward-card">
+      <div class="reward-ico">${r.emoji}</div>
+      <div class="reward-name">${r.name}</div>
+      <div class="reward-cost">⭐ ${r.cost}</div>
+      <button class="claim-btn" onclick="openRedeem('${r.name.replace(/'/g,"\\'")}',${r.cost},'${r.emoji}')">Claim! 🎁</button>
+    </div>`).join('');
 }
 
-// ════════════════════════════════════════════════════════════════
-//  CHORE ACTIONS
-// ════════════════════════════════════════════════════════════════
-function doChore(kidName, choreName, btn) {
-  btn.disabled = true;
-  btn.classList.add('done');
-  btn.innerHTML = `<span class="chore-emoji"></span><span>✅ ${choreName}</span>`;
-
-  // Optimistic update
-  state.completedToday[`${kidName}|${choreName}`] = true;
-
-  google.script.run
-    .withSuccessHandler(res => {
-      if (!res.success) {
-        // Already done or error — just leave checked
-        return;
-      }
-
-      // Update points in state
-      const kid = state.kids.find(k => k.name === kidName);
-      if (kid) {
-        kid.points = res.newTotal;
-        kid.streak = res.streak;
-        updateKidCard(kid);
-      }
-
-      // Point popup
-      spawnPopup(`+${res.points}⭐`, btn);
-
-      // Streak popup
-      if (res.streakBonus) {
-        setTimeout(() => spawnPopup(`🔥 Streak Bonus +${res.bonusPoints}!`, btn, '#FF7043'), 400);
-      }
-
-      // Check for milestone celebration
-      checkMilestone(kidName, res.newTotal, res.streak);
-
-      // Check if all chores done
-      const kidChores = state.chores.filter(c => c.kids === 'Both' || c.kids === kidName);
-      const allDone = kidChores.every(c => state.completedToday[`${kidName}|${c.name}`]);
-      if (allDone) {
-        setTimeout(() => {
-          celebrate('🎊', `${kidName} finished ALL chores!`);
-          launchFireworks();
-        }, 600);
-      } else {
-        // Small confetti burst for single chore
-        spawnConfettiBurst(5);
-      }
-    })
-    .withFailureHandler(err => {
-      console.error(err);
-      spawnPopup('⚠️ Error', btn, '#EF5350');
-    })
-    .logChore(kidName, choreName);
-}
-
-function updateKidCard(kid) {
-  // Re-render just the stats
-  const strikeLimit = parseInt(state.config.strike_limit) || 5;
-  const nextReward = state.rewards.find(r => r.cost > kid.points);
-  const prevCost = nextReward ? (state.rewards[state.rewards.indexOf(nextReward) - 1]?.cost || 0) : 0;
-  const progress = nextReward
-    ? Math.min(100, ((kid.points - prevCost) / (nextReward.cost - prevCost)) * 100)
-    : 100;
-
-  const card = document.getElementById('card-' + kid.name);
-  if (!card) return;
-
-  const ptsEl = card.querySelector('.points .stat-value');
-  if (ptsEl) { ptsEl.textContent = `⭐ ${kid.points}`; ptsEl.classList.add('bounce'); setTimeout(() => ptsEl.classList.remove('bounce'), 400); }
-
-  const streakEl = card.querySelector('.streak .stat-value');
-  if (streakEl) streakEl.textContent = `🔥 ${kid.streak}`;
-
-  const fill = card.querySelector('.progress-fill');
-  if (fill) fill.style.width = progress + '%';
-}
-
-function checkMilestone(kidName, points, streak) {
-  const rewards = state.rewards;
-  for (const r of rewards) {
-    if (points >= r.cost && points - 10 < r.cost) {
-      setTimeout(() => {
-        celebrate(r.emoji, `${kidName} can claim:\n${r.name}!`);
-        launchFireworks();
-      }, 800);
+async function loadActivity() {
+  try {
+    const res = await api({ action:'getActivity' });
+    const list = document.getElementById('actList');
+    if (!res.activity?.length) {
+      list.innerHTML='<div style="color:var(--muted);text-align:center;padding:10px;font-size:.85rem">No activity yet — let\'s get going! 💪</div>';
       return;
     }
+    list.innerHTML = res.activity.map(a=>`
+      <div class="act-item">
+        <span class="act-kid ${a.kid}">${a.kid}</span>
+        <span class="act-chore">${a.chore}</span>
+        <span class="act-pts">${a.points>0?'+':''}${a.points}⭐</span>
+        <span class="act-date">${a.date}</span>
+      </div>`).join('');
+  } catch(e) {}
+}
+
+// ── CHORE ACTION ─────────────────────────────────────────────────────
+async function doChore(kidName, choreName, btn) {
+  btn.disabled=true; btn.classList.add('done');
+  btn.innerHTML=`<span class="chore-ico">✅</span><span>${choreName}</span>`;
+  S.completedToday[`${kidName}|${choreName}`]=true;
+  try {
+    const res = await api({ action:'logChore', kid:kidName, chore:encodeURIComponent(choreName) });
+    if (!res.success) return;
+    const kid=S.kids.find(k=>k.name===kidName);
+    if (kid) { kid.points=res.newTotal; kid.streak=res.streak; }
+    refreshStats(kidName, res.newTotal, res.streak);
+    spawnPop(`+${res.points}⭐`, btn);
+    if (res.streakBonus) setTimeout(()=>spawnPop(`🔥 Streak Bonus +${res.bonusPoints}!`,btn,'#FF7043'),400);
+    checkMilestone(kidName, res.newTotal, res.streak);
+    const kidChores=S.chores.filter(c=>c.kids==='Both'||c.kids===kidName);
+    const allDone=kidChores.every(c=>S.completedToday[`${kidName}|${c.name}`]);
+    if (allDone) { setTimeout(()=>{ celebrate('🎊',`${kidName} finished ALL chores today!`); fireworks(); },600); }
+    else confettiBurst(8);
+  } catch(e) { spawnPop('⚠️',btn,'#EF5350'); }
+}
+
+function refreshStats(name, pts, streak) {
+  const pEl=document.getElementById(`pts-${name}`);
+  if (pEl) { pEl.textContent=`⭐ ${pts}`; pEl.classList.add('bounce'); setTimeout(()=>pEl.classList.remove('bounce'),400); }
+  const sEl=document.getElementById(`streak-${name}`);
+  if (sEl) sEl.textContent=`🔥 ${streak}`;
+  const next=S.rewards.find(r=>r.cost>pts);
+  const prev=next?(S.rewards[S.rewards.indexOf(next)-1]?.cost||0):0;
+  const pct=next?Math.min(100,(pts-prev)/(next.cost-prev)*100):100;
+  const fill=document.getElementById(`prog-${name}`);
+  if (fill) fill.style.width=pct+'%';
+}
+
+function checkMilestone(name, pts, streak) {
+  for (const r of S.rewards) {
+    if (pts>=r.cost && pts-15<r.cost) {
+      setTimeout(()=>{ celebrate(r.emoji,`${name} can now claim:\n${r.name}!`); fireworks(); },800); return;
+    }
   }
-  if (streak > 0 && streak % 3 === 0) {
-    setTimeout(() => celebrate('🔥', `${kidName}'s on a ${streak}-day streak!`), 800);
-  }
+  if (streak>0 && streak%3===0) setTimeout(()=>celebrate('🔥',`${name} is on a ${streak}-day streak!`),800);
 }
 
-// ════════════════════════════════════════════════════════════════
-//  PARENT ZONE
-// ════════════════════════════════════════════════════════════════
-function toggleParentZone() {
-  const content = document.getElementById('parentContent');
-  const chev = document.getElementById('parentChevron');
-  const open = content.classList.toggle('open');
-  chev.textContent = open ? '▲' : '▼';
+// ── PARENT ZONE ───────────────────────────────────────────────────────
+function toggleParent() {
+  const b=document.getElementById('parentBody'), c=document.getElementById('parentChev');
+  c.textContent=b.classList.toggle('open')?'▲':'▼';
 }
 
-function requirePin(callback) {
-  pinCallback = callback;
-  pinBuffer = '';
-  document.getElementById('pinDisplay').textContent = '_ _ _ _';
-  document.getElementById('pinError').textContent = '';
-  document.getElementById('pinModal').classList.add('show');
+function requirePin(cb) {
+  pinCb=cb; pinBuf='';
+  document.getElementById('pinDots').textContent='_ _ _ _';
+  document.getElementById('pinErr').textContent='';
+  document.getElementById('pinOverlay').classList.add('show');
+}
+function closePin() { document.getElementById('pinOverlay').classList.remove('show'); pinCb=null; }
+
+async function pk(k) {
+  if (k==='del') { pinBuf=pinBuf.slice(0,-1); }
+  else if (k==='ok') {
+    try {
+      const res=await api({ action:'checkPin', pin:pinBuf });
+      if (res.valid) { closePin(); if(pinCb) pinCb(); }
+      else { document.getElementById('pinErr').textContent='❌ Wrong PIN — try again'; pinBuf=''; }
+    } catch(e) { document.getElementById('pinErr').textContent='Connection error — try again'; }
+    updatePinDisplay(); return;
+  } else if (pinBuf.length<4) { pinBuf+=k; }
+  updatePinDisplay();
+  if (pinBuf.length===4) setTimeout(()=>pk('ok'),150);
 }
 
-function pinPress(key) {
-  const display = document.getElementById('pinDisplay');
-  if (key === 'del') {
-    pinBuffer = pinBuffer.slice(0, -1);
-  } else if (key === 'ok') {
-    google.script.run
-      .withSuccessHandler(res => {
-        if (res.valid) {
-          parentUnlocked = true;
-          document.getElementById('pinModal').classList.remove('show');
-          if (pinCallback) pinCallback();
-        } else {
-          document.getElementById('pinError').textContent = '❌ Wrong PIN — try again';
-          pinBuffer = '';
-          display.textContent = '_ _ _ _';
-        }
-      })
-      .checkPin(pinBuffer);
-    return;
-  } else if (pinBuffer.length < 4) {
-    pinBuffer += key;
-  }
-
-  const masked = pinBuffer.split('').map(() => '●').join(' ');
-  const remaining = Array(4 - pinBuffer.length).fill('_').join(' ');
-  display.textContent = (masked + (pinBuffer.length ? ' ' : '') + remaining).trim() || '_ _ _ _';
-
-  if (pinBuffer.length === 4) pinPress('ok');
-}
-
-function closePin() {
-  document.getElementById('pinModal').classList.remove('show');
-  pinBuffer = '';
-  pinCallback = null;
+function updatePinDisplay() {
+  const filled=pinBuf.split('').map(()=>'●').join(' ');
+  const empty=Array(4-pinBuf.length).fill('_').join(' ');
+  document.getElementById('pinDots').textContent=[filled,empty].filter(Boolean).join(' ')||'_ _ _ _';
 }
 
 function openParentControls() {
-  document.getElementById('parentLocked').style.display = 'none';
-  document.getElementById('parentControls').style.display = 'block';
+  document.getElementById('parentLock').style.display='none';
+  document.getElementById('parentCtrls').style.display='block';
 }
-
 function lockParent() {
-  parentUnlocked = false;
-  document.getElementById('parentLocked').style.display = 'block';
-  document.getElementById('parentControls').style.display = 'none';
+  document.getElementById('parentLock').style.display='block';
+  document.getElementById('parentCtrls').style.display='none';
 }
 
-// ── Action modal ─────────────────────────────────────────────────
+// Action modal
 function openAction(type) {
-  currentAction = type;
-  selectedKid = null;
-  document.querySelectorAll('.kid-select-btn').forEach(b => b.classList.remove('selected'));
-  document.getElementById('actionInput').value = '';
-  document.getElementById('bonusAmtInput').value = '';
-  document.getElementById('bonusAmtInput').style.display = type === 'bonus' ? 'block' : 'none';
-
-  const titles = { strike: '⚡ Add Strike', removeStrike: '↩️ Remove Strike', bonus: '⭐ Award Bonus' };
-  const descs = {
-    strike: 'Select a kid and optionally enter a reason',
-    removeStrike: 'Select which kid to remove a strike from',
-    bonus: 'Select a kid and how many bonus points to award'
-  };
-  document.getElementById('actionTitle').textContent = titles[type];
-  document.getElementById('actionDesc').textContent = descs[type];
-  document.getElementById('actionModal').classList.add('show');
+  curAction=type; selKid=null;
+  const cfg={ strike:{t:'⚡ Add Strike',d:'Which kid gets a strike?',pts:false}, removeStrike:{t:'↩️ Remove Strike',d:'Remove a strike from which kid?',pts:false}, bonus:{t:'⭐ Award Bonus',d:'Award bonus points to which kid?',pts:true} };
+  document.getElementById('actTitle').textContent=cfg[type].t;
+  document.getElementById('actDesc').textContent=cfg[type].d;
+  document.getElementById('actReason').value='';
+  document.getElementById('actPoints').value='';
+  document.getElementById('actPoints').style.display=cfg[type].pts?'block':'none';
+  document.querySelectorAll('.kid-pick').forEach(b=>b.classList.remove('sel'));
+  document.getElementById('actionOverlay').classList.add('show');
 }
+function pickKid(n) { selKid=n; document.getElementById('pickMyles').classList.toggle('sel',n==='Myles'); document.getElementById('pickFinley').classList.toggle('sel',n==='Finley'); }
+function closeAction() { document.getElementById('actionOverlay').classList.remove('show'); curAction=selKid=null; }
 
-function selectKid(name) {
-  selectedKid = name;
-  document.getElementById('selectMyles').classList.toggle('selected', name === 'Myles');
-  document.getElementById('selectFinley').classList.toggle('selected', name === 'Finley');
-}
-
-function closeAction() {
-  document.getElementById('actionModal').classList.remove('show');
-  currentAction = null; selectedKid = null;
-}
-
-function submitAction() {
-  if (!selectedKid) { alert('Please select a kid first!'); return; }
-  const reason = document.getElementById('actionInput').value;
-  const bonus = document.getElementById('bonusAmtInput').value;
-
-  if (currentAction === 'strike') {
-    google.script.run
-      .withSuccessHandler(res => {
-        if (res.success) {
-          const kid = state.kids.find(k => k.name === selectedKid);
-          if (kid) { kid.strikes = res.strikes; }
-          closeAction();
-          if (res.hitLimit) {
-            setTimeout(() => {
-              celebrate('😔', `${selectedKid} has ${res.strikes} strikes!\n${res.consequence}`);
-              document.getElementById('consequence-' + selectedKid)?.classList.add('show');
-              shakeCard(selectedKid);
-            }, 200);
-          } else {
-            shakeCard(selectedKid);
-          }
-          updateStrikes(selectedKid, res.strikes);
-        }
-      })
-      .addStrike(selectedKid, reason);
-
-  } else if (currentAction === 'removeStrike') {
-    google.script.run
-      .withSuccessHandler(res => {
-        if (res.success) {
-          const kid = state.kids.find(k => k.name === selectedKid);
-          if (kid) kid.strikes = res.strikes;
-          updateStrikes(selectedKid, res.strikes);
-          closeAction();
-        }
-      })
-      .removeStrike(selectedKid);
-
-  } else if (currentAction === 'bonus') {
-    if (!bonus || isNaN(bonus) || parseInt(bonus) <= 0) { alert('Enter a valid points amount!'); return; }
-    google.script.run
-      .withSuccessHandler(res => {
-        if (res.success) {
-          const kid = state.kids.find(k => k.name === selectedKid);
-          if (kid) { kid.points = res.newTotal; updateKidCard(kid); }
-          closeAction();
-          celebrate('⭐', `${selectedKid} earned ${bonus} bonus points!`);
-          spawnConfettiBurst(20);
-        }
-      })
-      .awardBonus(selectedKid, parseInt(bonus), reason || 'Good behaviour bonus');
-  }
-}
-
-function updateStrikes(kidName, count) {
-  const strikeLimit = parseInt(state.config.strike_limit) || 5;
-  const card = document.getElementById('card-' + kidName);
-  if (!card) return;
-  const dotsRow = card.querySelector('.strikes-row');
-  if (!dotsRow) return;
-  dotsRow.innerHTML = Array.from({length: strikeLimit}, (_, i) => {
-    const filled = i < count;
-    const isLast = filled && i === strikeLimit - 1;
-    return `<div class="strike-dot ${filled ? (isLast ? 'last' : 'filled') : ''}">${filled ? '⚡' : ''}</div>`;
-  }).join('');
-  const label = card.querySelector('.strikes-label');
-  if (label) label.textContent = `⚡ Strikes this week (${count}/${strikeLimit})`;
-}
-
-function shakeCard(kidName) {
-  const card = document.getElementById('card-' + kidName);
-  if (!card) return;
-  card.style.animation = 'shake 0.5s';
-  setTimeout(() => card.style.animation = '', 600);
-}
-
-// ── Redeem modal ─────────────────────────────────────────────────
-function openRedeem(name, cost, emoji) {
-  currentReward = { name, cost, emoji };
-  selectedRedeemKid = null;
-  document.getElementById('redeemMyles').classList.remove('selected');
-  document.getElementById('redeemFinley').classList.remove('selected');
-  document.getElementById('redeemDesc').textContent = `${emoji} ${name} — ⭐ ${cost} points`;
-  document.getElementById('redeemModal').classList.add('show');
-}
-
-function selectRedeemKid(name) {
-  selectedRedeemKid = name;
-  document.getElementById('redeemMyles').classList.toggle('selected', name === 'Myles');
-  document.getElementById('redeemFinley').classList.toggle('selected', name === 'Finley');
-}
-
-function closeRedeem() {
-  document.getElementById('redeemModal').classList.remove('show');
-  currentReward = null; selectedRedeemKid = null;
-}
-
-function submitRedeem() {
-  if (!selectedRedeemKid) { alert('Select a kid first!'); return; }
-  if (!currentReward) return;
-
-  const kid = state.kids.find(k => k.name === selectedRedeemKid);
-  if (kid && kid.points < currentReward.cost) {
-    alert(`${selectedRedeemKid} only has ⭐${kid.points} — need ⭐${currentReward.cost}! Keep earning! 💪`);
-    return;
-  }
-
-  google.script.run
-    .withSuccessHandler(res => {
-      if (res.success) {
-        const k = state.kids.find(kk => kk.name === selectedRedeemKid);
-        if (k) { k.points = res.newTotal; updateKidCard(k); }
-        closeRedeem();
-        celebrate(currentReward.emoji, `${selectedRedeemKid} claimed:\n${currentReward.name}! 🎉`);
-        launchFireworks();
-      } else {
-        alert(res.message || 'Could not redeem — check points!');
-      }
-    })
-    .redeemReward(selectedRedeemKid, currentReward.name, currentReward.cost);
-}
-
-// ════════════════════════════════════════════════════════════════
-//  ANIMATIONS
-// ════════════════════════════════════════════════════════════════
-function celebrate(emoji, text) {
-  const el = document.getElementById('celebration');
-  document.getElementById('celebEmoji').textContent = emoji;
-  document.getElementById('celebText').textContent = text;
-  el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 3000);
-}
-
-function spawnPopup(text, nearEl, color) {
-  const popup = document.createElement('div');
-  popup.className = 'point-popup';
-  popup.textContent = text;
-  if (color) popup.style.color = color;
-
-  const rect = nearEl ? nearEl.getBoundingClientRect() : { top: window.innerHeight/2, left: window.innerWidth/2 };
-  popup.style.top = (rect.top + window.scrollY - 20) + 'px';
-  popup.style.left = (rect.left + rect.width/2) + 'px';
-  popup.style.transform = 'translateX(-50%)';
-  document.body.appendChild(popup);
-  setTimeout(() => popup.remove(), 1300);
-}
-
-// ── Confetti ─────────────────────────────────────────────────────
-const canvas = document.getElementById('confettiCanvas');
-const ctx = canvas.getContext('2d');
-let particles = [];
-let animFrame = null;
-
-function resizeCanvas() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-}
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
-
-const COLORS = ['#FFD700','#FF6B35','#4FC3F7','#81C784','#CE93D8','#FF80AB','#80DEEA'];
-
-function spawnConfettiBurst(count) {
-  for (let i = 0; i < count; i++) {
-    particles.push({
-      x: Math.random() * canvas.width, y: -10,
-      vx: (Math.random() - 0.5) * 4, vy: Math.random() * 3 + 2,
-      color: COLORS[Math.floor(Math.random() * COLORS.length)],
-      size: Math.random() * 8 + 4, rot: Math.random() * 360,
-      rotV: (Math.random() - 0.5) * 10, life: 1
-    });
-  }
-  if (!animFrame) animateConfetti();
-}
-
-function launchFireworks() {
-  const cx = canvas.width / 2;
-  const cy = canvas.height / 3;
-  for (let b = 0; b < 3; b++) {
-    setTimeout(() => {
-      const ox = cx + (Math.random() - 0.5) * 200;
-      const oy = cy + (Math.random() - 0.5) * 100;
-      for (let i = 0; i < 60; i++) {
-        const angle = (i / 60) * Math.PI * 2;
-        const speed = Math.random() * 6 + 3;
-        particles.push({
-          x: ox, y: oy,
-          vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
-          color: COLORS[Math.floor(Math.random() * COLORS.length)],
-          size: Math.random() * 6 + 3, rot: 0, rotV: 0, life: 1,
-          isFirework: true
-        });
-      }
-      if (!animFrame) animateConfetti();
-    }, b * 300);
-  }
-}
-
-function animateConfetti() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  particles = particles.filter(p => p.life > 0.02);
-
-  particles.forEach(p => {
-    ctx.save();
-    ctx.globalAlpha = p.life;
-    ctx.fillStyle = p.color;
-    ctx.translate(p.x, p.y);
-    ctx.rotate((p.rot * Math.PI) / 180);
-    if (p.isFirework) {
-      ctx.beginPath();
-      ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
-      ctx.fill();
-    } else {
-      ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+async function submitAction() {
+  if (!selKid) { alert('Please select a kid first!'); return; }
+  const reason=document.getElementById('actReason').value;
+  const pts=document.getElementById('actPoints').value;
+  if (curAction==='strike') {
+    const res=await api({ action:'addStrike', kid:selKid, reason:encodeURIComponent(reason) });
+    if (res.success) {
+      const k=S.kids.find(k=>k.name===selKid); if(k) k.strikes=res.strikes;
+      updateDots(selKid,res.strikes); closeAction(); shakeCard(selKid);
+      if (res.hitLimit) { document.getElementById(`con-${selKid}`)?.classList.add('show'); setTimeout(()=>celebrate('😔',`${selKid} has ${res.strikes} strikes!\n${res.consequence}`),300); }
     }
-    ctx.restore();
-
-    p.x += p.vx; p.y += p.vy;
-    p.vy += 0.15;
-    p.rot += p.rotV;
-    p.life -= p.isFirework ? 0.015 : 0.008;
-    if (p.isFirework) { p.vx *= 0.96; p.vy *= 0.96; }
-  });
-
-  if (particles.length) {
-    animFrame = requestAnimationFrame(animateConfetti);
-  } else {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    animFrame = null;
+  } else if (curAction==='removeStrike') {
+    const res=await api({ action:'removeStrike', kid:selKid });
+    if (res.success) {
+      const k=S.kids.find(k=>k.name===selKid); if(k) k.strikes=res.strikes;
+      updateDots(selKid,res.strikes);
+      if (res.strikes<(parseInt(S.config.strike_limit)||5)) document.getElementById(`con-${selKid}`)?.classList.remove('show');
+      closeAction();
+    }
+  } else if (curAction==='bonus') {
+    if (!pts||isNaN(pts)||parseInt(pts)<1) { alert('Enter a valid points amount!'); return; }
+    const res=await api({ action:'awardBonus', kid:selKid, points:parseInt(pts), reason:encodeURIComponent(reason||'Good behaviour') });
+    if (res.success) {
+      const k=S.kids.find(k=>k.name===selKid); if(k) k.points=res.newTotal;
+      refreshStats(selKid,res.newTotal,S.kids.find(k=>k.name===selKid)?.streak||0);
+      closeAction(); celebrate('⭐',`${selKid} earned ${pts} bonus points!`); confettiBurst(20);
+    }
   }
 }
 
-// ════════════════════════════════════════════════════════════════
-//  UTILS
-// ════════════════════════════════════════════════════════════════
-function escJs(str) {
-  return str.replace(/'/g, "\\'").replace(/"/g, '\\"');
+function updateDots(name, count) {
+  const lim=parseInt(S.config.strike_limit)||5;
+  const el=document.getElementById(`dots-${name}`);
+  if (!el) return;
+  el.innerHTML=Array.from({length:lim},(_,i)=>{ const on=i<count,boom=on&&i===lim-1; return `<div class="dot ${on?(boom?'boom':'on'):''}">${on?'⚡':''}</div>`; }).join('');
+  const lbl=el.previousElementSibling;
+  if (lbl) lbl.textContent=`⚡ Strikes this week (${count}/${lim})`;
+}
+
+function shakeCard(name) {
+  const el=document.getElementById(`card-${name}`);
+  if (!el) return; el.style.animation='shake .5s'; setTimeout(()=>el.style.animation='',600);
+}
+
+// Redeem
+function openRedeem(name,cost,emoji) {
+  curReward={name,cost,emoji}; selRedKid=null;
+  document.getElementById('redeemDesc').textContent=`${emoji} ${name} — ⭐ ${cost} points`;
+  document.getElementById('redMyles').classList.remove('sel');
+  document.getElementById('redFinley').classList.remove('sel');
+  document.getElementById('redeemOverlay').classList.add('show');
+}
+function pickRedeem(n) { selRedKid=n; document.getElementById('redMyles').classList.toggle('sel',n==='Myles'); document.getElementById('redFinley').classList.toggle('sel',n==='Finley'); }
+function closeRedeem() { document.getElementById('redeemOverlay').classList.remove('show'); curReward=selRedKid=null; }
+
+async function submitRedeem() {
+  if (!selRedKid) { alert('Select a kid first!'); return; }
+  const kid=S.kids.find(k=>k.name===selRedKid);
+  if (kid&&kid.points<curReward.cost) { alert(`${selRedKid} only has ⭐${kid.points} — need ⭐${curReward.cost}!\nKeep earning! 💪`); return; }
+  const res=await api({ action:'redeemReward', kid:selRedKid, reward:encodeURIComponent(curReward.name), cost:curReward.cost });
+  if (res.success) {
+    const k=S.kids.find(k=>k.name===selRedKid); if(k) k.points=res.newTotal;
+    refreshStats(selRedKid,res.newTotal,k?.streak||0);
+    const r=curReward; closeRedeem();
+    celebrate(r.emoji,`${selRedKid} claimed:\n${r.name}! 🎉`); fireworks();
+  } else { alert(res.message||'Could not redeem — check points!'); }
+}
+
+// ── ANIMATIONS ────────────────────────────────────────────────────────
+function celebrate(emoji, text) {
+  document.getElementById('celEmo').textContent=emoji;
+  document.getElementById('celTxt').textContent=text;
+  const el=document.getElementById('celebrate');
+  el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),3500);
+}
+
+function spawnPop(text, nearEl, color) {
+  const pop=document.createElement('div'); pop.className='ptpop'; pop.textContent=text;
+  if (color) pop.style.color=color;
+  const r=nearEl?.getBoundingClientRect()||{top:window.innerHeight/2,left:window.innerWidth/2,width:0};
+  pop.style.top=(r.top+window.scrollY-20)+'px'; pop.style.left=(r.left+r.width/2)+'px';
+  document.body.appendChild(pop); setTimeout(()=>pop.remove(),1400);
+}
+
+const cv=document.getElementById('fx'), cx2=cv.getContext('2d');
+let parts=[], raf=null;
+const COLS=['#FFD700','#FF6B35','#4FC3F7','#81C784','#CE93D8','#FF80AB','#80DEEA'];
+function resize() { cv.width=innerWidth; cv.height=innerHeight; }
+addEventListener('resize',resize); resize();
+
+function confettiBurst(n) {
+  for (let i=0;i<n;i++) parts.push({ x:Math.random()*cv.width, y:-10, vx:(Math.random()-.5)*5, vy:Math.random()*3+2, c:COLS[Math.random()*COLS.length|0], s:Math.random()*8+4, r:Math.random()*360, rv:(Math.random()-.5)*12, l:1, fw:false });
+  if (!raf) loop();
+}
+
+function fireworks() {
+  for (let b=0;b<4;b++) setTimeout(()=>{
+    const ox=cv.width*(.3+Math.random()*.4), oy=cv.height*(.15+Math.random()*.2);
+    for (let i=0;i<70;i++) { const a=(i/70)*Math.PI*2,sp=Math.random()*7+3; parts.push({ x:ox,y:oy,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp, c:COLS[Math.random()*COLS.length|0],s:Math.random()*5+3, r:0,rv:0,l:1,fw:true }); }
+    if (!raf) loop();
+  }, b*280);
+}
+
+function loop() {
+  cx2.clearRect(0,0,cv.width,cv.height);
+  parts=parts.filter(p=>p.l>0.02);
+  parts.forEach(p=>{
+    cx2.save(); cx2.globalAlpha=p.l; cx2.fillStyle=p.c;
+    cx2.translate(p.x,p.y); cx2.rotate(p.r*Math.PI/180);
+    if (p.fw) { cx2.beginPath(); cx2.arc(0,0,p.s/2,0,Math.PI*2); cx2.fill(); }
+    else { cx2.fillRect(-p.s/2,-p.s/2,p.s,p.s*.6); }
+    cx2.restore();
+    p.x+=p.vx; p.y+=p.vy; p.vy+=.14; p.r+=p.rv; p.l-=p.fw?.016:.008;
+    if(p.fw){p.vx*=.96;p.vy*=.96;}
+  });
+  if (parts.length) { raf=requestAnimationFrame(loop); }
+  else { cx2.clearRect(0,0,cv.width,cv.height); raf=null; }
 }
 </script>
 </body>
