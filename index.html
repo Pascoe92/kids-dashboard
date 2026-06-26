@@ -564,6 +564,12 @@ footer{text-align:center;padding:16px;font-size:.68rem;color:rgba(255,255,255,.1
   </div>
 </div>
 
+<div class="overlay" id="genericOverlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="genericModal" style="text-align:left;max-height:80vh;overflow-y:auto">
+    <div class="modal-body"></div>
+  </div>
+</div>
+
 <script>
 // ═══════════════════════════════════════════════════
 // CONFIG
@@ -840,6 +846,12 @@ function checkMilestone(name,pts,streak){
 }
 
 // ── PARENT ZONE ──
+function showModal(html){
+  document.querySelector('#genericModal .modal-body').innerHTML=html;
+  document.getElementById('genericOverlay').classList.add('show');
+}
+function closeModal(){document.getElementById('genericOverlay').classList.remove('show');}
+
 function requirePin(cb){pinCb=cb;pinBuf='';document.getElementById('pinDots').textContent='_ _ _ _';document.getElementById('pinErr').textContent='';document.getElementById('pinOverlay').classList.add('show');}
 function closePin(){document.getElementById('pinOverlay').classList.remove('show');pinCb=null;}
 
