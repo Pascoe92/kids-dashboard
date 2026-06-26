@@ -1198,22 +1198,34 @@ async function submitAddEvent(){
   const color=document.getElementById('evtColor').value||'gold';
   const notes=document.getElementById('evtNotes').value.trim();
   if(!title||!date){alert('Please add a title and date');return;}
-  closeModal();
-  // Optimistic add
+  // Keep modal open, show saving state
+  const body=document.querySelector('#genericModal .modal-body');
+  body.innerHTML=`<div style="text-align:center;padding:24px"><span class="spin">⭐</span><br><br>Saving to Google Calendar…</div>`;
   const tempId='tmp_'+Date.now();
-  calEvents.push({id:tempId,title,date,time,endTime,color,notes});
-  renderCalGrid();
-  if(date===calSelectedDate) openDayView(date);
   try{
     const res=await api({action:'addCalEvent',id:tempId,title:encodeURIComponent(title),date,time,endTime,color,notes:encodeURIComponent(notes),calId});
     if(res.success){
-      const evt=calEvents.find(e=>e.id===tempId);
-      if(evt&&res.id) evt.id=res.id;
+      closeModal();
+      calEvents.push({id:res.id||tempId,title,date,time,endTime,color,notes});
+      renderCal();
     } else {
-      alert('❌ Could not save to Google Calendar:\n\n'+(res.error||'Unknown error')+'\n\nMake sure you have redeployed Apps Script as a new version after updating Code.gs.');
+      body.innerHTML=`
+        <div style="text-align:center;padding:8px">
+          <div style="font-size:2rem;margin-bottom:12px">❌</div>
+          <p style="color:#ef5350;font-weight:700;margin:0 0 8px">Failed to save</p>
+          <p style="color:var(--muted);font-size:.82rem;margin:0 0 16px">${res.error||'Unknown error'}</p>
+          <p style="color:var(--muted);font-size:.75rem;margin:0 0 16px">Have you updated Code.gs in Apps Script and redeployed as a <strong>new version</strong>?</p>
+          <button class="btn btn-ghost" onclick="closeModal()" style="width:100%">Close</button>
+        </div>`;
     }
   }catch(e){
-    alert('❌ Network error saving event:\n\n'+e.message);
+    body.innerHTML=`
+      <div style="text-align:center;padding:8px">
+        <div style="font-size:2rem;margin-bottom:12px">❌</div>
+        <p style="color:#ef5350;font-weight:700;margin:0 0 8px">Network error</p>
+        <p style="color:var(--muted);font-size:.82rem;margin:0 0 16px">${e.message}</p>
+        <button class="btn btn-ghost" onclick="closeModal()" style="width:100%">Close</button>
+      </div>`;
   }
 }
 
