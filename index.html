@@ -1023,22 +1023,21 @@ function renderWeek(){
   const mon=getMonday_(calViewDate);
   const weekDays=Array.from({length:7},(_,i)=>{const d=new Date(mon);d.setDate(d.getDate()+i);return d;});
   document.getElementById('calPeriodLbl').textContent=`${fmtShort_(weekDays[0])} – ${fmtShort_(weekDays[6])}`;
-  const hours=Array.from({length:24},(_,i)=>i);
+  const hours=Array.from({length:16},(_,i)=>i+6); // 6am–9pm
+  const fmt12=h=>h===0?'12am':h<12?h+'am':h===12?'12pm':(h-12)+'pm';
   let html='<div class="cal-week-grid">';
-  // Header row
   html+='<div class="cal-week-hdr"></div>';
   html+=weekDays.map(d=>{
     const isToday=d.toDateString()===now.toDateString();
     return `<div class="cal-week-hdr${isToday?' today-hdr':''}">${DAYS_S[(d.getDay()+6)%7]}<br><span style="font-size:.8rem;font-weight:800">${d.getDate()}</span></div>`;
   }).join('');
-  // Hour rows
   hours.forEach(h=>{
-    html+=`<div class="cal-time-col">${h===0?'':String(h).padStart(2,'0')+':00'}</div>`;
+    html+=`<div class="cal-time-col">${fmt12(h)}</div>`;
     weekDays.forEach(d=>{
       const ds=fmtDate_(d);
       const isToday=d.toDateString()===now.toDateString();
       const slotEvts=calEvents.filter(e=>e.date===ds&&!e.allDay&&e.time&&parseInt(e.time.split(':')[0])===h);
-      const evtHtml=slotEvts.map(e=>`<div class="cal-week-evt" style="background:${CAL_COLOR_HEX[e.color||'blue']}" onclick="event.stopPropagation();showEventDetail('${e.id}')" title="${e.title}">${e.time} ${e.title}</div>`).join('');
+      const evtHtml=slotEvts.map(e=>`<div class="cal-week-evt" style="background:${CAL_COLOR_HEX[e.color||'blue']}" onclick="event.stopPropagation();showEventDetail('${e.id}')" title="${e.title}">${fmt12(h)} ${e.title}</div>`).join('');
       html+=`<div class="cal-week-cell${isToday?' today-col':''}" onclick="calSelectedDate='${ds}';setCalView('day')">${evtHtml}</div>`;
     });
   });
