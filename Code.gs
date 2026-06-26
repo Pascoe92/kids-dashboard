@@ -35,7 +35,7 @@ function handleRequest(e) {
       // Calendar
       case 'getCalendarList': return getCalendarList();
       case 'getCalEvents':    return getCalEvents(p.calId||'');
-      case 'addCalEvent':     return addCalEvent(p.id, dec(p.title), p.date, p.time||'', p.color||'gold', dec(p.notes||''), p.endTime||'');
+      case 'addCalEvent':     return addCalEvent(p.id, dec(p.title), p.date, p.time||'', p.color||'gold', dec(p.notes||''), p.endTime||'', p.calId||'');
       case 'deleteCalEvent':  return deleteCalEvent(p.id);
       // Meal Planner
       case 'getMealPlan':       return getMealPlan(p.week);
@@ -410,9 +410,10 @@ function getCalEvents(calId) {
   }
 }
 
-function addCalEvent(id, title, date, time, color, notes, endTime) {
+function addCalEvent(id, title, date, time, color, notes, endTime, calId) {
   try {
-    const cal = CalendarApp.getDefaultCalendar();
+    const cal = (calId && calId !== 'default') ? CalendarApp.getCalendarById(calId) : CalendarApp.getDefaultCalendar();
+    if (!cal) return { success: false, error: 'Calendar not found' };
     const parts = date.split('-').map(Number);
     let event;
     if (time) {

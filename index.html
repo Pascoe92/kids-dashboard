@@ -1205,7 +1205,7 @@ async function submitAddEvent(){
   renderCalGrid();
   if(date===calSelectedDate) openDayView(date);
   try{
-    const res=await api({action:'addCalEvent',id:tempId,title:encodeURIComponent(title),date,time,endTime,color,notes:encodeURIComponent(notes)});
+    const res=await api({action:'addCalEvent',id:tempId,title:encodeURIComponent(title),date,time,endTime,color,notes:encodeURIComponent(notes),calId});
     if(res.success){
       // Replace temp id with real Google Calendar event id
       const evt=calEvents.find(e=>e.id===tempId);
