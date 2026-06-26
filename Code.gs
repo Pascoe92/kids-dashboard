@@ -6,12 +6,14 @@
 
 const SS_ID = '1g1gohK6yKtyGPwdSd85tM-UvxhtaJsUhDGUOVq8RTfc';
 
-// ── Entry point — all requests come in as GET with ?action=xxx ───────
+// ── Entry point — supports both JSON and JSONP (for CORS bypass) ────
 function doGet(e) {
   const result = handleRequest(e);
+  const json = JSON.stringify(result);
+  const cb = (e.parameter || {}).callback;
   return ContentService
-    .createTextOutput(JSON.stringify(result))
-    .setMimeType(ContentService.MimeType.JSON);
+    .createTextOutput(cb ? `${cb}(${json})` : json)
+    .setMimeType(cb ? ContentService.MimeType.JAVASCRIPT : ContentService.MimeType.JSON);
 }
 
 function handleRequest(e) {
