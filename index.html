@@ -490,14 +490,20 @@ function renderKid(kid) {
       </button>
     </div>`;
   }).join('');
+  const mood = kid.strikes === 0 ? '😄' : kid.strikes === 1 ? '🙂' : kid.strikes <= 3 ? '😐' : kid.strikes === 4 ? '😟' : '😢';
+  const moodLbl = kid.strikes === 0 ? 'Great day!' : kid.strikes === 1 ? 'Good!' : kid.strikes <= 3 ? 'Be careful!' : kid.strikes === 4 ? 'Nearly there!' : 'Oh no!';
   const cls=kid.name.toLowerCase();
   return `<div class="kid-card ${cls}" id="card-${kid.name}">
     <div class="card-top">
       <div class="avatar">${kid.avatar}</div>
-      <div>
+      <div style="flex:1">
         <div class="kid-name">${kid.name}</div>
         <div class="kid-meta">Age ${kid.age} 🎂 · ${kid.totalEarned} pts earned total</div>
         ${allDone?'<div class="star-day">⭐ Star of the Day!</div>':''}
+      </div>
+      <div style="text-align:center;flex-shrink:0">
+        <div style="font-size:2.2rem;line-height:1" id="mood-${kid.name}">${mood}</div>
+        <div style="font-size:.6rem;color:var(--muted);margin-top:3px">${moodLbl}</div>
       </div>
     </div>
     <div class="stats">
@@ -689,9 +695,16 @@ function updateDots(name, count) {
   const lim=parseInt(S.config.strike_limit)||5;
   const el=document.getElementById(`dots-${name}`);
   if (!el) return;
-  el.innerHTML=Array.from({length:lim},(_,i)=>{ const on=i<count,boom=on&&i===lim-1; return `<div class="dot ${on?(boom?'boom':'on'):''}">${on?'⚡':''}</div>`; }).join('');
+  el.innerHTML=Array.from({length:lim},(_,i)=>{ const on=i<count,boom=on&&i===lim-1; return `<div class="dot ${on?(boom?'boom':'on'):''}">${on?'⚡':'　'}</div>`; }).join('');
   const lbl=el.previousElementSibling;
   if (lbl) lbl.textContent=`⚡ Strikes this week (${count}/${lim})`;
+  // Update mood
+  const mood = count===0?'😄':count===1?'🙂':count<=3?'😐':count===4?'😟':'😢';
+  const moodLbl = count===0?'Great day!':count===1?'Good!':count<=3?'Be careful!':count===4?'Nearly there!':'Oh no!';
+  const moodEl=document.getElementById(`mood-${name}`);
+  if (moodEl) { moodEl.textContent=mood; moodEl.style.animation='popIn .4s'; setTimeout(()=>moodEl.style.animation='',500); }
+  const moodLblEl=moodEl?.nextElementSibling;
+  if (moodLblEl) moodLblEl.textContent=moodLbl;
 }
 
 function shakeCard(name) {
