@@ -129,7 +129,10 @@ section{margin-bottom:24px}
 }
 .chore-btn:hover:not(:disabled){background:rgba(255,255,255,.12);transform:scale(1.02)}
 .chore-btn:active:not(:disabled){transform:scale(.95)}
-.chore-btn.done{background:rgba(80,200,80,.08);border-color:rgba(80,200,80,.25);color:rgba(255,255,255,.4);cursor:default}
+.chore-btn.done{background:rgba(80,200,80,.08);border-color:rgba(80,200,80,.25);color:rgba(255,255,255,.45);cursor:pointer}
+.chore-btn.done:hover{background:rgba(255,80,80,.1);border-color:rgba(255,80,80,.3);color:rgba(255,255,255,.7)}
+.chore-btn.done:hover .undo-hint{display:inline}
+.undo-hint{display:none;font-size:.65rem;color:#ff8a80;margin-left:2px}
 .chore-ico{font-size:1.2rem;flex-shrink:0}
 
 /* REWARDS */
@@ -473,9 +476,13 @@ function renderKid(kid) {
   const choreHTML = kidChores.map(c=>{
     const done=S.completedToday[`${kid.name}|${c.name}`];
     const safeChore = c.name.replace(/'/g,"\\'");
-    const onclick = done ? '' : `onclick="doChore('${kid.name}','${safeChore}',this)"`;
-    return `<button class="chore-btn ${done?'done':''}" ${done?'disabled':''} ${onclick}>
-      <span class="chore-ico">${done?'✅':c.emoji}</span><span>${c.name}</span>
+    const onclick = done
+      ? `onclick="undoChore('${kid.name}','${safeChore}',this)"`
+      : `onclick="doChore('${kid.name}','${safeChore}',this)"`;
+    return `<button class="chore-btn ${done?'done':''}" ${onclick}>
+      <span class="chore-ico">${done?'✅':c.emoji}</span>
+      <span>${c.name}</span>
+      ${done?'<span class="undo-hint">↩ undo</span>':''}
     </button>`;
   }).join('');
   const rewardHTML = S.rewards.map(r=>{
@@ -544,6 +551,43 @@ async function loadActivity() {
         <span class="act-date">${a.date}</span>
       </div>`).join('');
   } catch(e) {}
+}
+
+// ── UNDO CHORE ───────────────────────────────────────────────────────
+async function undoChore(kidName, choreName, btn) {
+  btn.classList.remove('done');
+  btn.innerHTML=`<span class="chore-ico">⏳</span><span>${choreName}</span>`;
+  delete S.completedToday[`${kidName}|${choreName}`];
+  const safeChore = choreName.replace(/'/g,"\\'");
+  try {
+    const res = await api({ action:'undoChore', kid:kidName, chore:encodeURIComponent(choreName) });
+    if (res.success) {
+      btn.innerHTML=`<span class="chore-ico">${getChoreEmoji(choreName)}</span><span>${choreName}</span>`;
+      btn.onclick = function(){ doChore(kidName, choreName, btn); };
+      const kid=S.kids.find(k=>k.name===kidName);
+      if (kid) { kid.points=res.newTotal; }
+      refreshStats(kidName, res.newTotal, S.kids.find(k=>k.name===kidName)?.streak||0);
+      spawnPop(`-${res.pointsRemoved}⭐`, btn, '#ff8a80');
+      // Update chore counter
+      const kidChores=S.chores.filter(c=>c.kids==='Both'||c.kids===kidName);
+      const doneNow=kidChores.filter(c=>S.completedToday[`${kidName}|${c.name}`]).length;
+      const countEl=document.getElementById(`chores-${kidName}`);
+      if (countEl) countEl.textContent=`${doneNow}/${kidChores.length}`;
+    } else {
+      btn.classList.add('done');
+      btn.innerHTML=`<span class="chore-ico">✅</span><span>${choreName}</span><span class="undo-hint">↩ undo</span>`;
+      S.completedToday[`${kidName}|${choreName}`]=true;
+    }
+  } catch(e) {
+    btn.classList.add('done');
+    btn.innerHTML=`<span class="chore-ico">✅</span><span>${choreName}</span><span class="undo-hint">↩ undo</span>`;
+    S.completedToday[`${kidName}|${choreName}`]=true;
+  }
+}
+
+function getChoreEmoji(choreName) {
+  const chore = S.chores.find(c=>c.name===choreName);
+  return chore ? chore.emoji : '✔️';
 }
 
 // ── CHORE ACTION ─────────────────────────────────────────────────────
