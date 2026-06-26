@@ -10,6 +10,7 @@
 <style>
 :root{
   --myles:#4FC3F7;--myles-dk:#0288D1;
+  --cal-gold:#FFC107;--cal-green:#66bb6a;--cal-blue:#42a5f5;--cal-red:#ef5350;--cal-purple:#ab47bc;
   --finley:#81C784;--finley-dk:#2E7D32;
   --gold:#FFD700;--red:#EF5350;--orange:#FF7043;
   --cal:#7C83FD;--meal:#FF6B35;--shop:#26C6DA;--notes:#F48FB1;
@@ -195,10 +196,26 @@ main{max-width:960px;margin:0 auto;padding:14px 14px 20px}
 #unlockBtn:hover{background:rgba(156,39,176,.38)}
 
 /* ── CALENDAR PAGE ── */
-.cal-embed-wrap{border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);background:rgba(255,255,255,.03);margin-bottom:16px}
-.cal-embed-wrap iframe{width:100%;height:500px;border:none;display:block}
-.cal-setup{text-align:center;padding:40px 20px}
-.cal-setup p{color:var(--muted);font-size:.88rem;margin:10px 0 20px;line-height:1.6}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.cal-nav h3{font-size:1.1rem;font-weight:700;color:var(--gold)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:14px}
+.cal-dow{text-align:center;font-size:.6rem;font-weight:700;color:var(--muted);text-transform:uppercase;padding:4px 0}
+.cal-day{background:var(--card);border:1px solid var(--border);border-radius:8px;min-height:64px;padding:4px;cursor:pointer;transition:.15s}
+.cal-day:hover{border-color:var(--gold)}
+.cal-day.other-month{opacity:.3}
+.cal-day.today{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)}
+.cal-day-num{font-size:.7rem;font-weight:700;margin-bottom:2px;color:var(--text)}
+.cal-day.today .cal-day-num{color:var(--gold)}
+.cal-event-dot{background:var(--myles);border-radius:4px;padding:1px 4px;font-size:.52rem;color:#fff;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.cal-event-dot.color-green{background:#66bb6a}.cal-event-dot.color-blue{background:#42a5f5}.cal-event-dot.color-red{background:#ef5350}.cal-event-dot.color-purple{background:#ab47bc}.cal-event-dot.color-gold{background:#FFC107;color:#000}
+.cal-more{font-size:.5rem;color:var(--muted);margin-top:1px}
+.cal-event-list{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:14px}
+.cal-event-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.cal-event-item:last-child{border-bottom:none}
+.cal-event-color{width:10px;height:10px;border-radius:50%;margin-top:3px;flex-shrink:0}
+.cal-event-info{flex:1;min-width:0}
+.cal-event-title{font-weight:600;font-size:.88rem}
+.cal-event-meta{font-size:.72rem;color:var(--muted);margin-top:2px}
 
 /* ── MEAL PLANNER ── */
 .week-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
@@ -385,20 +402,24 @@ footer{text-align:center;padding:16px;font-size:.68rem;color:rgba(255,255,255,.1
 
 <div id="page-calendar" class="page">
   <main>
-    <div class="page-header"><span style="font-size:1.8rem">📅</span><h2>Family Calendar</h2></div>
-    <div id="calWrap">
-      <div class="cal-setup" id="calSetup">
-        <div style="font-size:3rem">📅</div>
-        <p>Link your Google Calendar so the whole family can see what's on.<br><br>
-        <strong>How to get your embed URL:</strong><br>
-        Open Google Calendar → Settings ⚙️ → pick your calendar → scroll to <em>"Integrate calendar"</em> → copy the <em>"Public URL to this calendar"</em> and paste it below.</p>
-        <input class="modal-input" id="calUrlInput" placeholder="Paste your calendar URL here" style="max-width:500px;margin:0 auto 12px;display:block">
-        <button class="btn btn-gold" onclick="saveCalUrl()">Link Calendar 📅</button>
+    <div class="page-header"><span style="font-size:1.8rem">📅</span><h2>Family Calendar</h2>
+      <button class="btn btn-gold" onclick="openAddEvent()" style="margin-left:auto;padding:8px 16px;font-size:.82rem">+ Add Event</button>
+    </div>
+    <div class="cal-nav">
+      <button class="btn btn-ghost" style="padding:6px 12px" onclick="calChangeMonth(-1)">‹</button>
+      <h3 id="calMonthLbl"></h3>
+      <button class="btn btn-ghost" style="padding:6px 12px" onclick="calChangeMonth(1)">›</button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div id="calDayEvents" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <span id="calDayLbl" style="font-weight:700;font-size:.95rem"></span>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-gold" onclick="openAddEvent(calSelectedDate)" style="padding:6px 12px;font-size:.78rem">+ Add</button>
+          <button class="btn btn-ghost" onclick="document.getElementById('calDayEvents').style.display='none'" style="padding:6px 12px;font-size:.78rem">✕</button>
+        </div>
       </div>
-      <div id="calFrame" style="display:none">
-        <div class="cal-embed-wrap"><iframe id="calIframe" src="" allowfullscreen></iframe></div>
-        <button class="btn btn-ghost" onclick="resetCal()" style="margin-top:8px;font-size:.78rem">Change calendar URL</button>
-      </div>
+      <div id="calDayList" class="cal-event-list"></div>
     </div>
   </main>
 </div>
@@ -900,26 +921,138 @@ async function submitRedeem(){
 // ═══════════════════════════════════════════════════
 // CALENDAR
 // ═══════════════════════════════════════════════════
-function initCal(){
-  const saved=localStorage.getItem('calUrl');
-  if(saved){showCal(saved);}
+let calEvents=[];
+let calViewDate=new Date();
+let calSelectedDate=null;
+const CAL_COLORS=['gold','green','blue','red','purple'];
+const CAL_COLOR_LABELS={gold:'⭐ Family',green:'✅ School',blue:'💙 Work',red:'❤️ Important',purple:'💜 Other'};
+
+async function initCal(){
+  calViewDate=new Date();
+  const grid=document.getElementById('calGrid');
+  grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--muted)"><span class="spin">⭐</span> Loading…</div>';
+  try{
+    const res=await api({action:'getCalEvents'});
+    if(res.success) calEvents=res.events||[];
+  }catch(e){calEvents=[];}
+  renderCalGrid();
 }
-function saveCalUrl(){
-  let url=document.getElementById('calUrlInput').value.trim();
-  if(!url){alert('Please paste your calendar URL first');return;}
-  // Convert to embed URL if needed
-  if(url.includes('calendar.google.com')&&!url.includes('/embed')){
-    url=url.replace('/basic','/embed').replace('/ical','');
+
+function renderCalGrid(){
+  const now=new Date();
+  const y=calViewDate.getFullYear(),m=calViewDate.getMonth();
+  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('calMonthLbl').textContent=months[m]+' '+y;
+  const first=new Date(y,m,1);
+  const last=new Date(y,m+1,0);
+  // Start on Monday
+  let startDow=first.getDay()===0?6:first.getDay()-1;
+  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  let html=days.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  // Prev month padding
+  for(let i=0;i<startDow;i++){
+    const d=new Date(y,m,1-startDow+i);
+    html+=`<div class="cal-day other-month"><div class="cal-day-num">${d.getDate()}</div></div>`;
   }
-  localStorage.setItem('calUrl',url);
-  showCal(url);
+  // This month
+  for(let d=1;d<=last.getDate();d++){
+    const dateStr=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday=now.getFullYear()===y&&now.getMonth()===m&&now.getDate()===d;
+    const dayEvts=calEvents.filter(e=>e.date===dateStr);
+    const dots=dayEvts.slice(0,3).map(e=>`<div class="cal-event-dot color-${e.color||'blue'}" onclick="event.stopPropagation();openDayView('${dateStr}')">${e.title}</div>`).join('');
+    const more=dayEvts.length>3?`<div class="cal-more">+${dayEvts.length-3} more</div>`:'';
+    html+=`<div class="cal-day${isToday?' today':''}" onclick="openDayView('${dateStr}')"><div class="cal-day-num">${d}</div>${dots}${more}</div>`;
+  }
+  // Next month padding to fill grid
+  const total=startDow+last.getDate();
+  const remaining=(7-total%7)%7;
+  for(let i=1;i<=remaining;i++) html+=`<div class="cal-day other-month"><div class="cal-day-num">${i}</div></div>`;
+  document.getElementById('calGrid').innerHTML=html;
 }
-function showCal(url){
-  document.getElementById('calSetup').style.display='none';
-  document.getElementById('calFrame').style.display='block';
-  document.getElementById('calIframe').src=url+'&wkst=2&bgcolor=%230f0a1e&ctz=Europe%2FLondon&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=1&showCalendars=0&color=%234285F4';
+
+function calChangeMonth(dir){
+  calViewDate=new Date(calViewDate.getFullYear(),calViewDate.getMonth()+dir,1);
+  renderCalGrid();
+  document.getElementById('calDayEvents').style.display='none';
 }
-function resetCal(){localStorage.removeItem('calUrl');document.getElementById('calSetup').style.display='block';document.getElementById('calFrame').style.display='none';document.getElementById('calIframe').src='';}
+
+function openDayView(dateStr){
+  calSelectedDate=dateStr;
+  const d=new Date(dateStr+'T12:00:00');
+  const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.getElementById('calDayLbl').textContent=`${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+  const evts=calEvents.filter(e=>e.date===dateStr);
+  const panel=document.getElementById('calDayEvents');
+  if(!evts.length){
+    document.getElementById('calDayList').innerHTML=`<div style="color:var(--muted);font-size:.85rem;text-align:center;padding:16px">Nothing on this day — tap + Add to create an event.</div>`;
+  } else {
+    document.getElementById('calDayList').innerHTML=evts.map(e=>`
+      <div class="cal-event-item">
+        <div class="cal-event-color" style="background:var(--cal-${e.color||'blue'})"></div>
+        <div class="cal-event-info">
+          <div class="cal-event-title">${e.title}</div>
+          <div class="cal-event-meta">${e.time?e.time+' · ':''}${CAL_COLOR_LABELS[e.color||'blue']||''}${e.notes?' · '+e.notes:''}</div>
+        </div>
+        <button class="btn btn-ghost" onclick="deleteCalEvent('${e.id}')" style="padding:4px 8px;font-size:.7rem;flex-shrink:0">🗑</button>
+      </div>`).join('');
+  }
+  panel.style.display='block';
+  panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function openAddEvent(dateStr){
+  // Pre-fill date if coming from a day view
+  const today=dateStr||new Date().toISOString().slice(0,10);
+  showModal(`
+    <h3 style="margin:0 0 16px">📅 Add Event</h3>
+    <label class="modal-label">Title</label>
+    <input class="modal-input" id="evtTitle" placeholder="e.g. Dentist appointment" autofocus>
+    <label class="modal-label">Date</label>
+    <input class="modal-input" id="evtDate" type="date" value="${today}">
+    <label class="modal-label">Time (optional)</label>
+    <input class="modal-input" id="evtTime" type="time">
+    <label class="modal-label">Category</label>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+      ${CAL_COLORS.map(c=>`<button onclick="selectEvtColor('${c}',this)" id="evtCol_${c}" class="btn btn-ghost" style="padding:5px 10px;font-size:.75rem;${c==='gold'?'border-color:var(--gold);background:rgba(255,193,7,.15)':''}">${CAL_COLOR_LABELS[c]}</button>`).join('')}
+    </div>
+    <input type="hidden" id="evtColor" value="gold">
+    <label class="modal-label">Notes (optional)</label>
+    <input class="modal-input" id="evtNotes" placeholder="Any extra details">
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn btn-gold" onclick="submitAddEvent()" style="flex:1">Save Event ✅</button>
+      <button class="btn btn-ghost" onclick="closeModal()" style="flex:1">Cancel</button>
+    </div>`);
+}
+
+function selectEvtColor(c,btn){
+  document.getElementById('evtColor').value=c;
+  document.querySelectorAll('[id^=evtCol_]').forEach(b=>b.style.borderColor='');
+  btn.style.borderColor='var(--gold)';btn.style.background='rgba(255,193,7,.15)';
+}
+
+async function submitAddEvent(){
+  const title=document.getElementById('evtTitle').value.trim();
+  const date=document.getElementById('evtDate').value;
+  const time=document.getElementById('evtTime').value;
+  const color=document.getElementById('evtColor').value||'gold';
+  const notes=document.getElementById('evtNotes').value.trim();
+  if(!title||!date){alert('Please add a title and date');return;}
+  closeModal();
+  const id=String(Date.now());
+  calEvents.push({id,title,date,time,color,notes});
+  renderCalGrid();
+  if(date===calSelectedDate) openDayView(date);
+  api({action:'addCalEvent',id,title:encodeURIComponent(title),date,time,color,notes:encodeURIComponent(notes)}).catch(()=>{});
+}
+
+async function deleteCalEvent(id){
+  if(!confirm('Delete this event?')) return;
+  calEvents=calEvents.filter(e=>e.id!==id);
+  renderCalGrid();
+  if(calSelectedDate) openDayView(calSelectedDate);
+  api({action:'deleteCalEvent',id}).catch(()=>{});
+}
 
 // ═══════════════════════════════════════════════════
 // MEAL PLANNER

@@ -31,6 +31,10 @@ function handleRequest(e) {
       case 'checkPin':     return checkPin(p.pin);
       case 'getActivity':       return { activity: getRecentActivity() };
       case 'initSheets':        return initializeSheets();
+      // Calendar
+      case 'getCalEvents':    return getCalEvents();
+      case 'addCalEvent':     return addCalEvent(p.id, dec(p.title), p.date, p.time||'', p.color||'gold', dec(p.notes||''));
+      case 'deleteCalEvent':  return deleteCalEvent(p.id);
       // Meal Planner
       case 'getMealPlan':       return getMealPlan(p.week);
       case 'saveMeal':          return saveMeal(p.week, p.day, p.type, dec(p.text));
@@ -103,6 +107,7 @@ function initializeSheets() {
     ],
     ChoresLog:   [['Date', 'Kid', 'Chore', 'Points', 'Notes']],
     StrikesLog:  [['Date', 'Kid', 'Reason']],
+    CalendarEvents:[['ID', 'Title', 'Date', 'Time', 'Color', 'Notes']],
     MealPlan:    [['WeekStart', 'Day', 'MealType', 'Text']],
     ShoppingList:[['ID', 'Item', 'Category', 'Checked']],
     FamilyNotes: [['ID', 'Text', 'Color', 'Created']]
@@ -324,6 +329,36 @@ function updatePoints_(ss, kidName, pts, config, isBonus) {
 
     return { success: true, points: pts, bonusPoints: streakBonus,
              newTotal: currentPts + earned, streak: newStreak, streakBonus: streakBonus > 0 };
+  }
+  return { success: false };
+}
+
+// ── Calendar ──────────────────────────────────────────────────────────
+function getCalEvents() {
+  const ss = SpreadsheetApp.openById(SS_ID);
+  const sheet = ss.getSheetByName('CalendarEvents');
+  const last = sheet.getLastRow();
+  if (last <= 1) return { success: true, events: [] };
+  const events = sheet.getRange('A2:F' + last).getValues()
+    .filter(r => r[0])
+    .map(r => ({ id: String(r[0]), title: r[1], date: r[2], time: r[3], color: r[4], notes: r[5] }));
+  return { success: true, events };
+}
+
+function addCalEvent(id, title, date, time, color, notes) {
+  const ss = SpreadsheetApp.openById(SS_ID);
+  ss.getSheetByName('CalendarEvents').appendRow([id || String(Date.now()), title, date, time || '', color || 'gold', notes || '']);
+  return { success: true };
+}
+
+function deleteCalEvent(id) {
+  const ss = SpreadsheetApp.openById(SS_ID);
+  const sheet = ss.getSheetByName('CalendarEvents');
+  const last = sheet.getLastRow();
+  if (last <= 1) return { success: false };
+  const data = sheet.getRange('A2:A' + last).getValues();
+  for (let i = 0; i < data.length; i++) {
+    if (String(data[i][0]) === String(id)) { sheet.deleteRow(i + 2); return { success: true }; }
   }
   return { success: false };
 }
