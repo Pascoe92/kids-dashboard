@@ -10,7 +10,7 @@
 <style>
 :root{
   --myles:#4FC3F7;--myles-dk:#0288D1;
-  --cal-gold:#FFC107;--cal-green:#66bb6a;--cal-blue:#42a5f5;--cal-red:#ef5350;--cal-purple:#ab47bc;
+  --cal-blue:#42a5f5;--cal-pink:#f06292;--cal-green:#66bb6a;--cal-yellow:#FFC107;--cal-purple:#ab47bc;
   --finley:#81C784;--finley-dk:#2E7D32;
   --gold:#FFD700;--red:#EF5350;--orange:#FF7043;
   --cal:#7C83FD;--meal:#FF6B35;--shop:#26C6DA;--notes:#F48FB1;
@@ -220,7 +220,7 @@ main{max-width:960px;margin:0 auto;padding:14px 14px 20px}
 .cal-day-num{font-size:.7rem;font-weight:700;margin-bottom:2px;color:var(--text)}
 .cal-day.today .cal-day-num{color:var(--gold)}
 .cal-event-dot{background:var(--myles);border-radius:4px;padding:1px 4px;font-size:.52rem;color:#fff;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
-.cal-event-dot.color-green{background:#66bb6a}.cal-event-dot.color-blue{background:#42a5f5}.cal-event-dot.color-red{background:#ef5350}.cal-event-dot.color-purple{background:#ab47bc}.cal-event-dot.color-gold{background:#FFC107;color:#000}
+.cal-event-dot.color-blue{background:#42a5f5}.cal-event-dot.color-pink{background:#f06292}.cal-event-dot.color-green{background:#66bb6a}.cal-event-dot.color-yellow{background:#FFC107;color:#000}.cal-event-dot.color-purple{background:#ab47bc}
 .cal-more{font-size:.5rem;color:var(--muted);margin-top:1px}
 .cal-event-list{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:14px}
 .cal-event-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
@@ -949,9 +949,9 @@ let calViewDate=new Date();
 let calSelectedDate=null;
 let calView='month'; // month | week | day
 let calId=localStorage.getItem('calId')||'default';
-const CAL_COLORS=['gold','green','blue','red','purple'];
-const CAL_COLOR_LABELS={gold:'⭐ Family',green:'✅ School',blue:'💙 Work',red:'❤️ Important',purple:'💜 Other'};
-const CAL_COLOR_HEX={gold:'#FFC107',green:'#66bb6a',blue:'#42a5f5',red:'#ef5350',purple:'#ab47bc'};
+const CAL_COLORS=['blue','pink','green','yellow','purple'];
+const CAL_COLOR_LABELS={blue:'💙 Sam',pink:'🌸 Jodie',green:'🌿 Myles',yellow:'⭐ Finley',purple:'👨‍👩‍👦 Family'};
+const CAL_COLOR_HEX={blue:'#42a5f5',pink:'#f06292',green:'#66bb6a',yellow:'#FFC107',purple:'#ab47bc'};
 const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
 const MONTHS_S=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const DAYS_L=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
