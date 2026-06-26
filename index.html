@@ -418,6 +418,11 @@ footer{text-align:center;padding:16px;font-size:.68rem;color:rgba(255,255,255,.1
     <div class="page-header"><span style="font-size:1.8rem">📅</span><h2>Family Calendar</h2>
       <button class="btn btn-gold" onclick="openAddEvent()" style="margin-left:auto;padding:8px 16px;font-size:.82rem">+ Add Event</button>
     </div>
+    <!-- Colour key -->
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+      <span style="font-size:.72rem;color:var(--muted);align-self:center">Who:</span>
+      ${['blue:💙 Sam','pink:🌸 Jodie','green:🌿 Myles','yellow:⭐ Finley','purple:👨‍👩‍👦 Family'].map(x=>{const[c,l]=x.split(':');return`<span style="display:flex;align-items:center;gap:5px;font-size:.72rem"><span style="width:10px;height:10px;border-radius:50%;background:var(--cal-${c});flex-shrink:0"></span>${l}</span>`;}).join('')}
+    </div>
     <!-- View switcher -->
     <div style="display:flex;gap:6px;margin-bottom:12px">
       <button class="cal-view-btn active" id="calView-month" onclick="setCalView('month')">Month</button>
@@ -1000,7 +1005,10 @@ function renderMonth(){
   html+=DAYS_S.map(d=>`<div class="cal-dow">${d}</div>`).join('');
   for(let i=0;i<startDow;i++){
     const d=new Date(y,m,1-startDow+i);
-    html+=`<div class="cal-day other-month"><div class="cal-day-num">${d.getDate()}</div></div>`;
+    const ds=fmtDate_(d);
+    const evts=calEvents.filter(e=>e.date===ds);
+    const dots=evts.slice(0,2).map(e=>`<div class="cal-event-dot color-${e.color||'blue'}">${e.title}</div>`).join('');
+    html+=`<div class="cal-day other-month" onclick="calSelectedDate='${ds}';setCalView('day')"><div class="cal-day-num">${d.getDate()}</div>${dots}</div>`;
   }
   for(let d=1;d<=last.getDate();d++){
     const ds=fmtDateStr_(y,m+1,d);
@@ -1012,7 +1020,13 @@ function renderMonth(){
   }
   const total=startDow+last.getDate();
   const rem=(7-total%7)%7;
-  for(let i=1;i<=rem;i++) html+=`<div class="cal-day other-month"><div class="cal-day-num">${i}</div></div>`;
+  for(let i=1;i<=rem;i++){
+    const d=new Date(y,m+1,i);
+    const ds=fmtDate_(d);
+    const evts=calEvents.filter(e=>e.date===ds);
+    const dots=evts.slice(0,2).map(e=>`<div class="cal-event-dot color-${e.color||'blue'}">${e.title}</div>`).join('');
+    html+=`<div class="cal-day other-month" onclick="calSelectedDate='${ds}';setCalView('day')"><div class="cal-day-num">${i}</div>${dots}</div>`;
+  }
   html+='</div>';
   document.getElementById('calBody').innerHTML=html;
 }
