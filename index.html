@@ -603,13 +603,16 @@ function requirePin(cb) {
 function closePin() { document.getElementById('pinOverlay').classList.remove('show'); pinCb=null; }
 
 function verifyPin(entered) {
-  return entered === String(S.config.pin_key || '1234');
+  const stored = String(S.config.pin_key || '1234');
+  console.log('verifyPin: entered=', entered, 'stored=', stored, 'match=', entered===stored);
+  return entered === stored;
 }
 
 function pk(k) {
   if (k==='del') { pinBuf=pinBuf.slice(0,-1); }
   else if (k==='ok') {
-    if (verifyPin(pinBuf)) { const cb=pinCb; closePin(); if(cb) cb(); }
+    console.log('pk ok: pinBuf=', pinBuf, 'pinCb=', pinCb);
+    if (verifyPin(pinBuf)) { const cb=pinCb; closePin(); console.log('calling cb:', cb); if(cb) cb(); }
     else { document.getElementById('pinErr').textContent='❌ Wrong PIN — try again'; pinBuf=''; }
     updatePinDisplay(); return;
   } else if (pinBuf.length<4) { pinBuf+=k; }
