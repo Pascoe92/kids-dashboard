@@ -101,18 +101,18 @@ section{margin-bottom:24px}
 
 /* strikes */
 .strikes-wrap{margin-bottom:16px}
-.strikes-lbl{font-size:.72rem;color:var(--muted);margin-bottom:7px}
-.dots{display:flex;gap:7px}
+.strikes-lbl{font-size:.8rem;font-weight:700;color:var(--red);margin-bottom:10px;letter-spacing:.5px;text-transform:uppercase}
+.dots{display:flex;gap:8px;flex-wrap:wrap}
 .dot{
-  width:30px;height:30px;border-radius:50%;
-  border:2px solid var(--border);display:flex;align-items:center;justify-content:center;
-  font-size:.95rem;transition:all .3s;
+  width:46px;height:46px;border-radius:14px;
+  border:2px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;
+  font-size:1.5rem;transition:all .3s;background:rgba(255,255,255,.04);
 }
-.dot.on{border-color:var(--red);background:rgba(239,83,80,.18)}
-.dot.boom{border-color:var(--red);background:var(--red);animation:pulse .4s}
+.dot.on{border-color:var(--red);background:rgba(239,83,80,.25);animation:pulse .4s}
+.dot.boom{border-color:var(--red);background:var(--red);box-shadow:0 0 18px rgba(239,83,80,.6);animation:pulse .4s}
 .consequence{
-  margin-top:8px;background:rgba(239,83,80,.12);border:1px solid rgba(239,83,80,.3);
-  border-radius:10px;padding:7px 12px;font-size:.75rem;color:#ff8a80;text-align:center;
+  margin-top:10px;background:rgba(239,83,80,.15);border:2px solid rgba(239,83,80,.5);
+  border-radius:12px;padding:10px 14px;font-size:.82rem;font-weight:700;color:#ff6b6b;text-align:center;
   display:none;
 }
 .consequence.show{display:block;animation:fadeIn .3s}
@@ -134,36 +134,35 @@ section{margin-bottom:24px}
 
 /* REWARDS */
 .rewards-scroll{
-  display:flex;gap:12px;overflow-x:auto;padding-bottom:6px;
+  display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;margin-top:14px;
   scrollbar-width:thin;scrollbar-color:var(--border) transparent;
 }
 .reward-card{
-  flex-shrink:0;min-width:148px;background:var(--card);border:1px solid var(--border);
-  border-radius:18px;padding:16px 14px;text-align:center;transition:transform .2s;
+  flex-shrink:0;min-width:130px;background:rgba(0,0,0,.25);border:1px solid var(--border);
+  border-radius:16px;padding:12px 10px;text-align:center;transition:transform .2s;
 }
-.reward-card:hover{transform:translateY(-4px)}
-.reward-ico{font-size:2rem;margin-bottom:6px}
-.reward-name{font-size:.75rem;color:var(--muted);margin-bottom:6px;line-height:1.3}
-.reward-cost{font-size:1rem;font-weight:800;color:var(--gold);margin-bottom:10px}
+.reward-card:hover{transform:translateY(-3px)}
+.reward-card.affordable{border-color:rgba(255,215,0,.35);background:rgba(255,215,0,.06)}
+.reward-ico{font-size:1.7rem;margin-bottom:4px}
+.reward-name{font-size:.7rem;color:var(--muted);margin-bottom:4px;line-height:1.3}
+.reward-cost{font-size:.9rem;font-weight:800;color:var(--gold);margin-bottom:8px}
 .claim-btn{
-  width:100%;padding:8px;border-radius:11px;border:none;cursor:pointer;
-  font-size:.75rem;font-weight:800;font-family:inherit;
+  width:100%;padding:7px;border-radius:10px;border:none;cursor:pointer;
+  font-size:.72rem;font-weight:800;font-family:inherit;
   background:linear-gradient(135deg,var(--gold),#FFA000);color:#1a0533;transition:all .2s;
 }
 .claim-btn:hover{filter:brightness(1.1);transform:scale(1.04)}
 .claim-btn:active{transform:scale(.95)}
+.claim-btn:disabled{background:rgba(255,255,255,.1);color:var(--muted);cursor:not-allowed;transform:none;filter:none}
+.rewards-lbl{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:16px;margin-bottom:2px}
 
 /* PARENT ZONE */
 .parent-wrap{
   background:rgba(156,39,176,.08);border:1px solid rgba(156,39,176,.25);
   border-radius:var(--radius);padding:18px;margin-bottom:24px;
 }
-.parent-head{
-  display:flex;align-items:center;justify-content:space-between;cursor:pointer;
-  user-select:none;
-}
-.parent-body{display:none;margin-top:16px}
-.parent-body.open{display:block}
+.parent-head{display:flex;align-items:center;justify-content:space-between}
+.parent-body{margin-top:16px}
 .parent-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
 .pbtn{
   padding:13px;border-radius:14px;border:none;color:var(--text);
@@ -298,18 +297,13 @@ footer{text-align:center;padding:20px;font-size:.7rem;color:rgba(255,255,255,.18
   <div id="loading"><span class="spin">⭐</span> Loading…</div>
   <div id="app" style="display:none">
     <section><div class="kids-grid" id="kidsGrid"></div></section>
-    <section>
-      <div class="sec-title">🎁 Rewards Shop</div>
-      <div class="rewards-scroll" id="rewardsRow"></div>
-    </section>
     <div class="parent-wrap">
-      <div class="parent-head" onclick="toggleParent()">
+      <div class="parent-head">
         <div class="sec-title" style="margin:0">🔐 Parent Zone</div>
-        <span id="parentChev" style="color:var(--muted);font-size:1.1rem">▼</span>
       </div>
-      <div class="parent-body" id="parentBody">
+      <div class="parent-body">
         <div id="parentLock" style="text-align:center;padding:10px 0">
-          <p style="color:var(--muted);font-size:.85rem;margin-bottom:14px">PIN required to manage strikes &amp; bonuses</p>
+          <p style="color:var(--muted);font-size:.85rem;margin-bottom:14px">Enter PIN to manage strikes &amp; bonuses</p>
           <button id="unlockBtn" onclick="requirePin(openParentControls)">🔓 Unlock Parent Zone</button>
         </div>
         <div id="parentCtrls" style="display:none">
@@ -460,7 +454,6 @@ async function loadAll() {
 // ── RENDER ───────────────────────────────────────────────────────────
 function renderApp() {
   document.getElementById('kidsGrid').innerHTML = S.kids.map(renderKid).join('');
-  renderRewards();
 }
 
 function renderKid(kid) {
@@ -468,7 +461,7 @@ function renderKid(kid) {
   const hit = kid.strikes >= lim;
   const dots = Array.from({length:lim},(_,i)=>{
     const on=i<kid.strikes, boom=on&&i===lim-1;
-    return `<div class="dot ${on?(boom?'boom':'on'):''}">${on?'⚡':''}</div>`;
+    return `<div class="dot ${on?(boom?'boom':'on'):''}">${on?'⚡':'　'}</div>`;
   }).join('');
   const next = S.rewards.find(r=>r.cost>kid.points);
   const prev = next ? (S.rewards[S.rewards.indexOf(next)-1]?.cost||0) : 0;
@@ -484,6 +477,18 @@ function renderKid(kid) {
     return `<button class="chore-btn ${done?'done':''}" ${done?'disabled':''} ${onclick}>
       <span class="chore-ico">${done?'✅':c.emoji}</span><span>${c.name}</span>
     </button>`;
+  }).join('');
+  const rewardHTML = S.rewards.map(r=>{
+    const canAfford = kid.points >= r.cost;
+    const safeName = r.name.replace(/'/g,"\\'");
+    return `<div class="reward-card ${canAfford?'affordable':''}">
+      <div class="reward-ico">${r.emoji}</div>
+      <div class="reward-name">${r.name}</div>
+      <div class="reward-cost">⭐ ${r.cost}</div>
+      <button class="claim-btn" ${canAfford?'':' disabled'} onclick="claimFor('${kid.name}','${safeName}',${r.cost},'${r.emoji}')">
+        ${canAfford?'Claim! 🎁':'Need '+(r.cost-kid.points)+' more'}
+      </button>
+    </div>`;
   }).join('');
   const cls=kid.name.toLowerCase();
   return `<div class="kid-card ${cls}" id="card-${kid.name}">
@@ -512,17 +517,9 @@ function renderKid(kid) {
     </div>
     <div class="chores-lbl">Today's Chores</div>
     <div class="chores-grid" id="chores-${kid.name}">${choreHTML}</div>
+    <div class="rewards-lbl">🎁 Rewards</div>
+    <div class="rewards-scroll">${rewardHTML}</div>
   </div>`;
-}
-
-function renderRewards() {
-  document.getElementById('rewardsRow').innerHTML = S.rewards.map(r=>`
-    <div class="reward-card">
-      <div class="reward-ico">${r.emoji}</div>
-      <div class="reward-name">${r.name}</div>
-      <div class="reward-cost">⭐ ${r.cost}</div>
-      <button class="claim-btn" onclick="openRedeem('${r.name.replace(/'/g,"\\'")}',${r.cost},'${r.emoji}')">Claim! 🎁</button>
-    </div>`).join('');
 }
 
 async function loadActivity() {
@@ -545,25 +542,26 @@ async function loadActivity() {
 
 // ── CHORE ACTION ─────────────────────────────────────────────────────
 async function doChore(kidName, choreName, btn) {
+  // Instant visual feedback — don't wait for API
   btn.disabled=true; btn.classList.add('done');
   btn.innerHTML=`<span class="chore-ico">✅</span><span>${choreName}</span>`;
   S.completedToday[`${kidName}|${choreName}`]=true;
+  confettiBurst(10);
+  spawnPop(`+${parseInt(S.config.points_per_chore)||10}⭐`, btn);
+  const kidChores=S.chores.filter(c=>c.kids==='Both'||c.kids===kidName);
+  const doneNow=kidChores.filter(c=>S.completedToday[`${kidName}|${c.name}`]).length;
+  const countEl=document.getElementById(`chores-${kidName}`);
+  if (countEl) { countEl.textContent=`${doneNow}/${kidChores.length}`; countEl.classList.add('bounce'); setTimeout(()=>countEl.classList.remove('bounce'),400); }
+  if (doneNow===kidChores.length) setTimeout(()=>{ celebrate('🎊',`${kidName} finished ALL chores today! 🎊`); fireworks(); },300);
+  // Then sync to sheet in background
   try {
     const res = await api({ action:'logChore', kid:kidName, chore:encodeURIComponent(choreName) });
     if (!res.success) return;
     const kid=S.kids.find(k=>k.name===kidName);
     if (kid) { kid.points=res.newTotal; kid.streak=res.streak; }
     refreshStats(kidName, res.newTotal, res.streak);
-    spawnPop(`+${res.points}⭐`, btn);
-    if (res.streakBonus) setTimeout(()=>spawnPop(`🔥 Streak Bonus +${res.bonusPoints}!`,btn,'#FF7043'),400);
+    if (res.streakBonus) setTimeout(()=>spawnPop(`🔥 Streak Bonus +${res.bonusPoints}!`,btn,'#FF7043'),200);
     checkMilestone(kidName, res.newTotal, res.streak);
-    const kidChores=S.chores.filter(c=>c.kids==='Both'||c.kids===kidName);
-    const doneNow=kidChores.filter(c=>S.completedToday[`${kidName}|${c.name}`]).length;
-    const countEl=document.getElementById(`chores-${kidName}`);
-    if (countEl) { countEl.textContent=`${doneNow}/${kidChores.length}`; countEl.classList.add('bounce'); setTimeout(()=>countEl.classList.remove('bounce'),400); }
-    const allDone=doneNow===kidChores.length;
-    if (allDone) { setTimeout(()=>{ celebrate('🎊',`${kidName} finished ALL chores today!`); fireworks(); },600); }
-    else confettiBurst(8);
   } catch(e) { spawnPop('⚠️',btn,'#EF5350'); }
 }
 
@@ -589,11 +587,6 @@ function checkMilestone(name, pts, streak) {
 }
 
 // ── PARENT ZONE ───────────────────────────────────────────────────────
-function toggleParent() {
-  const b=document.getElementById('parentBody'), c=document.getElementById('parentChev');
-  c.textContent=b.classList.toggle('open')?'▲':'▼';
-}
-
 function requirePin(cb) {
   pinCb=cb; pinBuf='';
   document.getElementById('pinDots').textContent='_ _ _ _';
@@ -627,12 +620,24 @@ function updatePinDisplay() {
 }
 
 function openParentControls() {
-  document.getElementById('parentLock').style.display='none';
-  document.getElementById('parentCtrls').style.display='block';
+  const lock=document.getElementById('parentLock');
+  const ctrls=document.getElementById('parentCtrls');
+  if(lock) lock.style.display='none';
+  if(ctrls) { ctrls.style.display='block'; ctrls.style.visibility='visible'; }
+  console.log('Parent controls opened');
 }
 function lockParent() {
-  document.getElementById('parentLock').style.display='block';
-  document.getElementById('parentCtrls').style.display='none';
+  const lock=document.getElementById('parentLock');
+  const ctrls=document.getElementById('parentCtrls');
+  if(lock) lock.style.display='block';
+  if(ctrls) ctrls.style.display='none';
+}
+
+// Rewards claimed directly for a specific kid
+function claimFor(kidName, rewardName, cost, emoji) {
+  curReward={name:rewardName, cost:cost, emoji:emoji};
+  selRedKid=kidName;
+  submitRedeem();
 }
 
 // Action modal
