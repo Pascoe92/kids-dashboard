@@ -408,6 +408,7 @@ let curAction=null, selKid=null, selRedKid=null, curReward=null;
 
 // ── INIT ─────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => { tick(); setInterval(tick,30000); loadAll(); });
+console.log('Kids Dashboard v2 — JSONP build loaded');
 
 function tick() {
   const n=new Date();
@@ -439,8 +440,10 @@ async function loadAll() {
   document.getElementById('loading').style.display='block';
   document.getElementById('app').style.display='none';
   document.getElementById('loading').innerHTML='<span class="spin">⭐</span> Loading…';
+  console.log('loadAll: calling API...');
   try {
     const data = await api({ action:'getData' });
+    console.log('loadAll: got data', data);
     if (!data.success) throw new Error(data.error||'API error');
     S = data;
     renderApp();
