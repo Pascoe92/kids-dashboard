@@ -480,7 +480,8 @@ function renderKid(kid) {
   const choreHTML = kidChores.map(c=>{
     const done=S.completedToday[`${kid.name}|${c.name}`];
     const safeChore = c.name.replace(/'/g,"\\'");
-    return `<button class="chore-btn ${done?'done':''}" ${done?'disabled':''} onclick="${done?'':``doChore('${kid.name}','${safeChore}',this)``}">
+    const onclick = done ? '' : `onclick="doChore('${kid.name}','${safeChore}',this)"`;
+    return `<button class="chore-btn ${done?'done':''}" ${done?'disabled':''} ${onclick}>
       <span class="chore-ico">${done?'✅':c.emoji}</span><span>${c.name}</span>
     </button>`;
   }).join('');
