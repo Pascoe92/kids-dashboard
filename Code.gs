@@ -104,7 +104,8 @@ function getData() {
 
   const kids = rows_(ss, 'KidsData', 'A2:H10').filter(r => r[0]).map(r => ({
     name: r[0], age: r[1], avatar: r[2], points: r[3]||0,
-    strikes: r[4]||0, streak: r[5]||0,
+    strikes: r[4]||0,
+    streak: typeof r[5] === 'number' ? Math.round(r[5]) : 0,
     lastChoreDate: r[6] ? new Date(r[6]).toISOString() : '',
     totalEarned: r[7]||0
   }));
