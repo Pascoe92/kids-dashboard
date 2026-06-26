@@ -498,7 +498,7 @@ function renderKid(kid) {
     <div class="stats">
       <div class="chip pts"><div class="chip-val" id="pts-${kid.name}">⭐ ${kid.points}</div><div class="chip-lbl">Points</div></div>
       <div class="chip streak"><div class="chip-val" id="streak-${kid.name}">🔥 ${kid.streak}</div><div class="chip-lbl">Day Streak</div></div>
-      <div class="chip"><div class="chip-val">${doneCount}/${kidChores.length}</div><div class="chip-lbl">Chores Today</div></div>
+      <div class="chip"><div class="chip-val" id="chores-${kid.name}">${doneCount}/${kidChores.length}</div><div class="chip-lbl">Chores Today</div></div>
     </div>
     <div class="prog-wrap">
       <div class="prog-meta"><span>Next reward</span><span>${kid.points} pts</span></div>
@@ -558,7 +558,10 @@ async function doChore(kidName, choreName, btn) {
     if (res.streakBonus) setTimeout(()=>spawnPop(`🔥 Streak Bonus +${res.bonusPoints}!`,btn,'#FF7043'),400);
     checkMilestone(kidName, res.newTotal, res.streak);
     const kidChores=S.chores.filter(c=>c.kids==='Both'||c.kids===kidName);
-    const allDone=kidChores.every(c=>S.completedToday[`${kidName}|${c.name}`]);
+    const doneNow=kidChores.filter(c=>S.completedToday[`${kidName}|${c.name}`]).length;
+    const countEl=document.getElementById(`chores-${kidName}`);
+    if (countEl) { countEl.textContent=`${doneNow}/${kidChores.length}`; countEl.classList.add('bounce'); setTimeout(()=>countEl.classList.remove('bounce'),400); }
+    const allDone=doneNow===kidChores.length;
     if (allDone) { setTimeout(()=>{ celebrate('🎊',`${kidName} finished ALL chores today!`); fireworks(); },600); }
     else confettiBurst(8);
   } catch(e) { spawnPop('⚠️',btn,'#EF5350'); }
