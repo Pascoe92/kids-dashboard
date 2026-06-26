@@ -29,9 +29,23 @@ function handleRequest(e) {
       case 'awardBonus':   return awardBonus(p.kid, parseInt(p.points), dec(p.reason || ''));
       case 'redeemReward': return redeemReward(p.kid, dec(p.reward), parseInt(p.cost));
       case 'checkPin':     return checkPin(p.pin);
-      case 'getActivity':  return { activity: getRecentActivity() };
-      case 'initSheets':   return initializeSheets();
-      default:             return { status: 'Kids Dashboard API v2', ok: true };
+      case 'getActivity':       return { activity: getRecentActivity() };
+      case 'initSheets':        return initializeSheets();
+      // Meal Planner
+      case 'getMealPlan':       return getMealPlan(p.week);
+      case 'saveMeal':          return saveMeal(p.week, p.day, p.type, dec(p.text));
+      // Shopping List
+      case 'getShoppingList':   return getShoppingList();
+      case 'addShopItem':       return addShopItem(dec(p.item), dec(p.cat));
+      case 'toggleShopItem':    return toggleShopItem(p.id);
+      case 'deleteShopItem':    return deleteShopItem(p.id);
+      case 'clearDoneShop':     return clearDoneShop();
+      case 'clearAllShop':      return clearAllShop();
+      // Family Notes
+      case 'getNotes':          return getNotes();
+      case 'saveNote':          return saveNote(p.id, dec(p.text), dec(p.color));
+      case 'deleteNote':        return deleteNote(p.id);
+      default:                  return { status: 'Kids Dashboard API v2', ok: true };
     }
   } catch (err) {
     return { success: false, error: err.message };
@@ -87,8 +101,11 @@ function initializeSheets() {
       ['Cinema trip',                400, '🍿', true],
       ['Big adventure day out',      500, '🎢', true]
     ],
-    ChoresLog:  [['Date', 'Kid', 'Chore', 'Points', 'Notes']],
-    StrikesLog: [['Date', 'Kid', 'Reason']]
+    ChoresLog:   [['Date', 'Kid', 'Chore', 'Points', 'Notes']],
+    StrikesLog:  [['Date', 'Kid', 'Reason']],
+    MealPlan:    [['WeekStart', 'Day', 'MealType', 'Text']],
+    ShoppingList:[['ID', 'Item', 'Category', 'Checked']],
+    FamilyNotes: [['ID', 'Text', 'Color', 'Created']]
   };
   Object.entries(defs).forEach(([name, rows]) => {
     let sheet = ss.getSheetByName(name) || ss.insertSheet(name);
@@ -307,6 +324,155 @@ function updatePoints_(ss, kidName, pts, config, isBonus) {
 
     return { success: true, points: pts, bonusPoints: streakBonus,
              newTotal: currentPts + earned, streak: newStreak, streakBonus: streakBonus > 0 };
+  }
+  return { success: false };
+}
+
+// ── Meal Planner ──────────────────────────────────────────────────────
+function getMealPlan(week) {
+  const ss = SpreadsheetApp.openById(SS_ID);
+  const sheet = ss.getSheetByName('MealPlan');
+  const last = sheet.getLastRow();
+  const meals = {};
+  if (last > 1) {
+    sheet.getRange('A2:D' + last).getValues()
+      .filter(r => r[0] === week)
+      .forEach(r => { meals[r[1] + '_' + r[2]] = r[3]; }); // key: "dayIndex_mealType"
+  }
+  return { success: true, week, meals };
+}
+
+function saveMeal(week, day, type, text) {
+  const ss = SpreadsheetApp.openById(SS_ID);
+  const sheet = ss.getSheetByName('MealPlan');
+  const last = sheet.getLastRow();
+  // Update existing row or append
+  if (last > 1) {
+    const data = sheet.getRange('A2:D' + last).getValues();
+    for (let i = 0; i < data.length; i++) {
+      if (data[i][0] === week && String(data[i][1]) === String(day) && data[i][2] === type) {
+        if (text) {
+          sheet.getRange(i + 2, 4).setValue(text);
+        } else {
+          sheet.deleteRow(i + 2);
+        }
+        return { success: true };
+      }
+    }
+  }
+  if (text) sheet.appendRow([week, day, type, text]);
+  return { success: true };
+}
+
+// ── Shopping List ─────────────────────────────────────────────────────
+function getShoppingList() {
+  const ss = SpreadsheetApp.openById(SS_ID);
+  const sheet = ss.getSheetByName('ShoppingList');
+  const last = sheet.getLastRow();
+  if (last <= 1) return { success: true, items: [] };
+  const items = sheet.getRange('A2:D' + last).getValues()
+    .filter(r => r[0])
+    .map(r => ({ id: String(r[0]), name: r[1], cat: r[2], checked: r[3] === true || r[3] === 'TRUE' }));
+  return { success: true, items };
+}
+
+function addShopItem(item, cat) {
+  const ss = SpreadsheetApp.openById(SS_ID);
+  const id = String(Date.now());
+  ss.getSheetByName('ShoppingList').appendRow([id, item, cat || 'Other', false]);
+  return { success: true, id };
+}
+
+function toggleShopItem(id) {
+  const ss = SpreadsheetApp.openById(SS_ID);
+  const sheet = ss.getSheetByName('ShoppingList');
+  const last = sheet.getLastRow();
+  if (last <= 1) return { success: false };
+  const data = sheet.getRange('A2:D' + last).getValues();
+  for (let i = 0; i < data.length; i++) {
+    if (String(data[i][0]) === String(id)) {
+      const newVal = !(data[i][3] === true || data[i][3] === 'TRUE');
+      sheet.getRange(i + 2, 4).setValue(newVal);
+      return { success: true, checked: newVal };
+    }
+  }
+  return { success: false };
+}
+
+function deleteShopItem(id) {
+  const ss = SpreadsheetApp.openById(SS_ID);
+  const sheet = ss.getSheetByName('ShoppingList');
+  const last = sheet.getLastRow();
+  if (last <= 1) return { success: false };
+  const data = sheet.getRange('A2:A' + last).getValues();
+  for (let i = 0; i < data.length; i++) {
+    if (String(data[i][0]) === String(id)) { sheet.deleteRow(i + 2); return { success: true }; }
+  }
+  return { success: false };
+}
+
+function clearDoneShop() {
+  const ss = SpreadsheetApp.openById(SS_ID);
+  const sheet = ss.getSheetByName('ShoppingList');
+  const last = sheet.getLastRow();
+  if (last <= 1) return { success: true };
+  const data = sheet.getRange('A2:D' + last).getValues();
+  for (let i = data.length - 1; i >= 0; i--) {
+    if (data[i][3] === true || data[i][3] === 'TRUE') sheet.deleteRow(i + 2);
+  }
+  return { success: true };
+}
+
+function clearAllShop() {
+  const ss = SpreadsheetApp.openById(SS_ID);
+  const sheet = ss.getSheetByName('ShoppingList');
+  const last = sheet.getLastRow();
+  if (last > 1) sheet.deleteRows(2, last - 1);
+  return { success: true };
+}
+
+// ── Family Notes ──────────────────────────────────────────────────────
+function getNotes() {
+  const ss = SpreadsheetApp.openById(SS_ID);
+  const sheet = ss.getSheetByName('FamilyNotes');
+  const last = sheet.getLastRow();
+  if (last <= 1) return { success: true, notes: [] };
+  const notes = sheet.getRange('A2:D' + last).getValues()
+    .filter(r => r[0])
+    .map(r => ({ id: String(r[0]), text: r[1], color: r[2] || 'yellow', created: r[3] }))
+    .reverse();
+  return { success: true, notes };
+}
+
+function saveNote(id, text, color) {
+  const ss = SpreadsheetApp.openById(SS_ID);
+  const sheet = ss.getSheetByName('FamilyNotes');
+  const last = sheet.getLastRow();
+  if (last > 1) {
+    const data = sheet.getRange('A2:D' + last).getValues();
+    for (let i = 0; i < data.length; i++) {
+      if (String(data[i][0]) === String(id)) {
+        sheet.getRange(i + 2, 2).setValue(text);
+        if (color) sheet.getRange(i + 2, 3).setValue(color);
+        return { success: true };
+      }
+    }
+  }
+  // New note
+  const newId = id || String(Date.now());
+  const created = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'dd/MM/yyyy');
+  sheet.appendRow([newId, text, color || 'yellow', created]);
+  return { success: true, id: newId };
+}
+
+function deleteNote(id) {
+  const ss = SpreadsheetApp.openById(SS_ID);
+  const sheet = ss.getSheetByName('FamilyNotes');
+  const last = sheet.getLastRow();
+  if (last <= 1) return { success: false };
+  const data = sheet.getRange('A2:A' + last).getValues();
+  for (let i = 0; i < data.length; i++) {
+    if (String(data[i][0]) === String(id)) { sheet.deleteRow(i + 2); return { success: true }; }
   }
   return { success: false };
 }
