@@ -436,6 +436,7 @@ footer{text-align:center;padding:16px;font-size:.68rem;color:rgba(255,255,255,.1
       <button class="cal-view-btn" id="calView-week" onclick="setCalView('week')">Week</button>
       <button class="cal-view-btn" id="calView-day" onclick="setCalView('day')">Day</button>
       <span style="flex:1"></span>
+      <button class="btn btn-ghost" onclick="testCalApi()" style="padding:6px 10px;font-size:.75rem">🔧 Test</button>
       <button class="btn btn-ghost" onclick="openCalPicker()" style="padding:6px 10px;font-size:.75rem">🗓 Calendar</button>
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
@@ -968,6 +969,22 @@ const MONTHS=['January','February','March','April','May','June','July','August',
 const MONTHS_S=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const DAYS_L=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 const DAYS_S=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+async function testCalApi(){
+  showModal('<h3 style="margin:0 0 12px">🔧 API Test</h3><div style="text-align:center;padding:16px;color:var(--muted)"><span class="spin">⭐</span> Testing connection…</div>');
+  try{
+    const res=await api({action:'addCalEvent',id:'TEST_'+Date.now(),title:encodeURIComponent('TEST EVENT - DELETE ME'),date:new Date().toISOString().slice(0,10),time:'',endTime:'',color:'blue',notes:'',calId});
+    document.querySelector('#genericModal .modal-body').innerHTML=`
+      <h3 style="margin:0 0 12px">🔧 API Test Result</h3>
+      <pre style="background:rgba(0,0,0,.3);padding:12px;border-radius:8px;font-size:.72rem;overflow-x:auto;white-space:pre-wrap;color:var(--text)">${JSON.stringify(res,null,2)}</pre>
+      <button class="btn btn-ghost" onclick="closeModal()" style="width:100%;margin-top:12px">Close</button>`;
+  }catch(e){
+    document.querySelector('#genericModal .modal-body').innerHTML=`
+      <h3 style="margin:0 0 12px">🔧 API Test Result</h3>
+      <p style="color:#ef5350">Network error: ${e.message}</p>
+      <button class="btn btn-ghost" onclick="closeModal()" style="width:100%;margin-top:12px">Close</button>`;
+  }
+}
 
 async function initCal(){
   calViewDate=new Date();
