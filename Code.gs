@@ -118,7 +118,10 @@ function getData() {
 
   const config = {};
   rows_(ss, 'Config', 'A2:B20').filter(r => r[0]).forEach(r => { config[r[0]] = r[1]; });
-  delete config.parent_pin; // never send PIN to client
+  // Send PIN as simple XOR so it's not plaintext but still usable client-side
+  const rawPin = String(config.parent_pin || '1234');
+  config.pin_check = rawPin.split('').map((c,i)=>c.charCodeAt(0)^(42+i)).join(',');
+  delete config.parent_pin;
 
   // Today's completed chores per kid
   const today = new Date().toDateString();
