@@ -405,6 +405,10 @@ footer{text-align:center;padding:16px;font-size:.68rem;color:rgba(255,255,255,.1
     <div class="page-header"><span style="font-size:1.8rem">📅</span><h2>Family Calendar</h2>
       <button class="btn btn-gold" onclick="openAddEvent()" style="margin-left:auto;padding:8px 16px;font-size:.82rem">+ Add Event</button>
     </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <span id="calNameLbl" style="font-size:.82rem;color:var(--muted);flex:1"></span>
+      <button class="btn btn-ghost" onclick="openCalPicker()" style="padding:6px 12px;font-size:.78rem">🗓 Change Calendar</button>
+    </div>
     <div class="cal-nav">
       <button class="btn btn-ghost" style="padding:6px 12px" onclick="calChangeMonth(-1)">‹</button>
       <h3 id="calMonthLbl"></h3>
@@ -924,18 +928,60 @@ async function submitRedeem(){
 let calEvents=[];
 let calViewDate=new Date();
 let calSelectedDate=null;
+let calId=localStorage.getItem('calId')||'default';
 const CAL_COLORS=['gold','green','blue','red','purple'];
 const CAL_COLOR_LABELS={gold:'⭐ Family',green:'✅ School',blue:'💙 Work',red:'❤️ Important',purple:'💜 Other'};
 
 async function initCal(){
   calViewDate=new Date();
-  const grid=document.getElementById('calGrid');
-  grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--muted)"><span class="spin">⭐</span> Loading…</div>';
+  document.getElementById('calGrid').innerHTML='<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--muted)"><span class="spin">⭐</span> Loading…</div>';
   try{
-    const res=await api({action:'getCalEvents'});
-    if(res.success) calEvents=res.events||[];
-  }catch(e){calEvents=[];}
+    const res=await api({action:'getCalEvents',calId});
+    if(res.success){
+      calEvents=res.events||[];
+      const lbl=document.getElementById('calNameLbl');
+      if(lbl) lbl.textContent=res.calName||'';
+    } else {
+      document.getElementById('calGrid').innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--muted)">Could not load calendar.<br><small>${res.error||''}</small></div>`;
+      return;
+    }
+  }catch(e){
+    document.getElementById('calGrid').innerHTML='<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--muted)">Error loading calendar. Check Apps Script is deployed.</div>';
+    return;
+  }
   renderCalGrid();
+}
+
+async function openCalPicker(){
+  showModal('<h3 style="margin:0 0 12px">Choose Calendar</h3><div style="text-align:center;padding:16px;color:var(--muted)"><span class="spin">⭐</span> Loading your calendars…</div>');
+  try{
+    const res=await api({action:'getCalendarList'});
+    if(!res.success||!res.calendars?.length){
+      document.querySelector('.modal-body').innerHTML='<p style="color:var(--muted)">No calendars found. Make sure Apps Script has calendar permission.</p><button class="btn btn-ghost" onclick="closeModal()" style="width:100%">Close</button>';
+      return;
+    }
+    document.querySelector('.modal-body').innerHTML=`
+      <h3 style="margin:0 0 12px">Choose Calendar</h3>
+      <p style="color:var(--muted);font-size:.82rem;margin-bottom:12px">Pick which Google Calendar to show:</p>
+      ${res.calendars.map(c=>`
+        <button onclick="selectCalendar('${c.id.replace(/'/g,"\\'")}','${c.name.replace(/'/g,"\\'")}',this)"
+          class="btn btn-ghost" style="width:100%;text-align:left;margin-bottom:8px;display:flex;align-items:center;gap:10px;${calId===c.id?'border-color:var(--gold);background:rgba(255,193,7,.1)':''}">
+          <span style="width:12px;height:12px;border-radius:50%;background:${c.color};flex-shrink:0"></span>
+          <span>${c.name}${c.isDefault?' ⭐':''}</span>
+        </button>`).join('')}
+      <button class="btn btn-ghost" onclick="closeModal()" style="width:100%;margin-top:4px">Cancel</button>`;
+  }catch(e){
+    document.querySelector('.modal-body').innerHTML='<p style="color:var(--muted)">Failed to load calendars.</p><button class="btn btn-ghost" onclick="closeModal()" style="width:100%">Close</button>';
+  }
+}
+
+function selectCalendar(id,name){
+  calId=id;
+  localStorage.setItem('calId',id);
+  closeModal();
+  const lbl=document.getElementById('calNameLbl');
+  if(lbl) lbl.textContent=name;
+  initCal();
 }
 
 function renderCalGrid(){

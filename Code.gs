@@ -32,6 +32,7 @@ function handleRequest(e) {
       case 'getActivity':       return { activity: getRecentActivity() };
       case 'initSheets':        return initializeSheets();
       // Calendar
+      case 'getCalendarList': return getCalendarList();
       case 'getCalEvents':    return getCalEvents(p.calId||'');
       case 'addCalEvent':     return addCalEvent(p.id, dec(p.title), p.date, p.time||'', p.color||'gold', dec(p.notes||''), p.endTime||'');
       case 'deleteCalEvent':  return deleteCalEvent(p.id);
@@ -334,9 +335,22 @@ function updatePoints_(ss, kidName, pts, config, isBonus) {
 }
 
 // ── Calendar (Google Calendar API via CalendarApp) ────────────────────
+function getCalendarList() {
+  try {
+    const cals = CalendarApp.getAllCalendars().map(c => ({
+      id: c.getId(),
+      name: c.getName(),
+      color: c.getColor(),
+      isDefault: c.isMyPrimaryCalendar()
+    }));
+    return { success: true, calendars: cals };
+  } catch(err) {
+    return { success: false, error: err.message };
+  }
+}
 function getCalEvents(calId) {
   try {
-    const cal = calId ? CalendarApp.getCalendarById(calId) : CalendarApp.getDefaultCalendar();
+    const cal = (calId && calId !== 'default') ? CalendarApp.getCalendarById(calId) : CalendarApp.getDefaultCalendar();
     if (!cal) return { success: false, error: 'Calendar not found' };
     const now = new Date();
     const start = new Date(now.getFullYear(), now.getMonth() - 1, 1); // prev month
