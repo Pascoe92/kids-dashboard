@@ -1207,11 +1207,14 @@ async function submitAddEvent(){
   try{
     const res=await api({action:'addCalEvent',id:tempId,title:encodeURIComponent(title),date,time,endTime,color,notes:encodeURIComponent(notes),calId});
     if(res.success){
-      // Replace temp id with real Google Calendar event id
       const evt=calEvents.find(e=>e.id===tempId);
       if(evt&&res.id) evt.id=res.id;
+    } else {
+      alert('❌ Could not save to Google Calendar:\n\n'+(res.error||'Unknown error')+'\n\nMake sure you have redeployed Apps Script as a new version after updating Code.gs.');
     }
-  }catch(e){}
+  }catch(e){
+    alert('❌ Network error saving event:\n\n'+e.message);
+  }
 }
 
 async function deleteCalEvent(id){
