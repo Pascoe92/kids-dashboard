@@ -419,9 +419,13 @@ footer{text-align:center;padding:16px;font-size:.68rem;color:rgba(255,255,255,.1
       <button class="btn btn-gold" onclick="openAddEvent()" style="margin-left:auto;padding:8px 16px;font-size:.82rem">+ Add Event</button>
     </div>
     <!-- Colour key -->
-    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">
-      <span style="font-size:.72rem;color:var(--muted);align-self:center">Who:</span>
-      ${['blue:💙 Sam','pink:🌸 Jodie','green:🌿 Myles','yellow:⭐ Finley','purple:👨‍👩‍👦 Family'].map(x=>{const[c,l]=x.split(':');return`<span style="display:flex;align-items:center;gap:5px;font-size:.72rem"><span style="width:10px;height:10px;border-radius:50%;background:var(--cal-${c});flex-shrink:0"></span>${l}</span>`;}).join('')}
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;align-items:center">
+      <span style="font-size:.72rem;color:var(--muted)">Who:</span>
+      <span style="display:flex;align-items:center;gap:5px;font-size:.75rem"><span style="width:10px;height:10px;border-radius:50%;background:var(--cal-blue);display:inline-block"></span>💙 Sam</span>
+      <span style="display:flex;align-items:center;gap:5px;font-size:.75rem"><span style="width:10px;height:10px;border-radius:50%;background:var(--cal-pink);display:inline-block"></span>🌸 Jodie</span>
+      <span style="display:flex;align-items:center;gap:5px;font-size:.75rem"><span style="width:10px;height:10px;border-radius:50%;background:var(--cal-green);display:inline-block"></span>🌿 Myles</span>
+      <span style="display:flex;align-items:center;gap:5px;font-size:.75rem"><span style="width:10px;height:10px;border-radius:50%;background:var(--cal-yellow);display:inline-block"></span>⭐ Finley</span>
+      <span style="display:flex;align-items:center;gap:5px;font-size:.75rem"><span style="width:10px;height:10px;border-radius:50%;background:var(--cal-purple);display:inline-block"></span>👨‍👩‍👦 Family</span>
     </div>
     <!-- View switcher -->
     <div style="display:flex;gap:6px;margin-bottom:12px">
