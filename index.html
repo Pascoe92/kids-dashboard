@@ -1312,22 +1312,25 @@ function loop(){cx.clearRect(0,0,cv.width,cv.height);parts=parts.filter(p=>p.l>0
 // ═══════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded',()=>{
   tick();setInterval(tick,30000);
-  // Load home data
-  api({action:'getData'}).then(d=>{S=d;renderHomeKids();}).catch(()=>{});
-  api({action:'getActivity'}).then(r=>{
+  // Single combined API call for everything needed on startup
+  api({action:'getAll'}).then(d=>{
+    S=d;
+    renderHomeKids();
+    // Activity feed
     const list=document.getElementById('homeActivity');
-    if(!list) return;
-    if(!r.activity?.length){list.innerHTML='<div style="color:var(--muted);font-size:.82rem;text-align:center;padding:10px">No activity yet today!</div>';return;}
-    list.innerHTML=r.activity.slice(0,5).map(a=>`<div class="act-item"><span class="act-kid ${a.kid}">${a.kid}</span><span class="act-chore">${a.chore}</span><span class="act-pts">${a.points>0?'+':''}${a.points}⭐</span><span class="act-date">${a.date}</span></div>`).join('');
-  }).catch(()=>{});
-  // Pre-load shopping count for home glance
-  api({action:'getShoppingList'}).then(r=>{
-    if(r.success){shopItems=r.items||[];const u=shopItems.filter(i=>!i.checked).length;const e=document.getElementById('glanceShop');if(e)e.textContent=u+' items';}
-  }).catch(()=>{});
-  // Pre-load this week's meals for home dinner glance
-  api({action:'getMealPlan',week:fmtWeek(currentWeekStart)}).then(r=>{
-    if(r.success){mealData=r.meals||{};const todayIdx=new Date().getDay()===0?6:new Date().getDay()-1;const d=mealData[todayIdx+'_dinner']||'—';const e=document.getElementById('glanceMeal');if(e)e.textContent=d.length>10?d.slice(0,10)+'…':d||'—';}
-  }).catch(()=>{});
+    if(list){
+      if(!d.activity?.length){list.innerHTML='<div style="color:var(--muted);font-size:.82rem;text-align:center;padding:10px">No activity yet today!</div>';}
+      else{list.innerHTML=d.activity.slice(0,5).map(a=>`<div class="act-item"><span class="act-kid ${a.kid}">${a.kid}</span><span class="act-chore">${a.chore}</span><span class="act-pts">${a.points>0?'+':''}${a.points}⭐</span><span class="act-date">${a.date}</span></div>`).join('');}
+    }
+    // Glance stats
+    const shopEl=document.getElementById('glanceShop');
+    if(shopEl) shopEl.textContent=(d.shopCount||0)+' items';
+    const mealEl=document.getElementById('glanceMeal');
+    if(mealEl&&d.todayDinner){const dn=d.todayDinner;mealEl.textContent=dn.length>10?dn.slice(0,10)+'…':dn;}
+  }).catch(()=>{
+    const list=document.getElementById('homeActivity');
+    if(list) list.innerHTML='<div style="color:var(--muted);font-size:.82rem;text-align:center;padding:10px">Could not connect — check your internet.</div>';
+  });
 });
 </script>
 </body>

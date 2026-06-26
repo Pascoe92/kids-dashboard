@@ -22,6 +22,7 @@ function handleRequest(e) {
   try {
     switch (action) {
       case 'getData':      return getData();
+      case 'getAll':       return getAll();
       case 'logChore':     return logChore(p.kid, dec(p.chore));
       case 'undoChore':    return undoChore(p.kid, dec(p.chore));
       case 'addStrike':    return addStrike(p.kid, dec(p.reason || ''));
@@ -119,6 +120,44 @@ function initializeSheets() {
     sheet.getRange(1, 1, rows.length, rows[0].length).setValues(rows);
   });
   return { success: true, message: 'All sheets initialised!' };
+}
+
+// ── Combined startup payload (home + kids + shopping count + meal) ───
+function getAll() {
+  const base = getData();
+  base.activity = getRecentActivity();
+  // Shopping count
+  const ss = SpreadsheetApp.openById(SS_ID);
+  const shopSheet = ss.getSheetByName('ShoppingList');
+  const shopLast = shopSheet.getLastRow();
+  let unchecked = 0;
+  if (shopLast > 1) {
+    unchecked = shopSheet.getRange('A2:D' + shopLast).getValues()
+      .filter(r => r[0] && !(r[3] === true || r[3] === 'TRUE')).length;
+  }
+  base.shopCount = unchecked;
+  // Today's dinner
+  const wk = Utilities.formatDate(getMondayDate_(), Session.getScriptTimeZone(), 'yyyy-MM-dd');
+  const todayIdx = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1;
+  const mealSheet = ss.getSheetByName('MealPlan');
+  const mealLast = mealSheet.getLastRow();
+  let dinner = '';
+  if (mealLast > 1) {
+    const meals = mealSheet.getRange('A2:D' + mealLast).getValues();
+    const row = meals.find(r => r[0] === wk && String(r[1]) === String(todayIdx) && r[2] === 'dinner');
+    if (row) dinner = row[3];
+  }
+  base.todayDinner = dinner;
+  return base;
+}
+
+function getMondayDate_() {
+  const d = new Date();
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  d.setHours(0,0,0,0);
+  return d;
 }
 
 // ── Main data payload ────────────────────────────────────────────────
