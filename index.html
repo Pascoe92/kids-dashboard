@@ -609,7 +609,7 @@ function verifyPin(entered) {
 function pk(k) {
   if (k==='del') { pinBuf=pinBuf.slice(0,-1); }
   else if (k==='ok') {
-    if (verifyPin(pinBuf)) { closePin(); if(pinCb) pinCb(); }
+    if (verifyPin(pinBuf)) { const cb=pinCb; closePin(); if(cb) cb(); }
     else { document.getElementById('pinErr').textContent='❌ Wrong PIN — try again'; pinBuf=''; }
     updatePinDisplay(); return;
   } else if (pinBuf.length<4) { pinBuf+=k; }
