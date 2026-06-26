@@ -603,10 +603,7 @@ function requirePin(cb) {
 function closePin() { document.getElementById('pinOverlay').classList.remove('show'); pinCb=null; }
 
 function verifyPin(entered) {
-  const check = S.config.pin_check;
-  if (!check) return entered === '1234'; // fallback default
-  const decoded = check.split(',').map((v,i)=>String.fromCharCode(parseInt(v)^(42+i))).join('');
-  return entered === decoded;
+  return entered === String(S.config.pin_key || '1234');
 }
 
 function pk(k) {
