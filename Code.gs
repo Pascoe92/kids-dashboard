@@ -23,6 +23,7 @@ function handleRequest(e) {
     switch (action) {
       case 'getData':      return getData();
       case 'logChore':     return logChore(p.kid, dec(p.chore));
+      case 'undoChore':    return undoChore(p.kid, dec(p.chore));
       case 'addStrike':    return addStrike(p.kid, dec(p.reason || ''));
       case 'removeStrike': return removeStrike(p.kid);
       case 'awardBonus':   return awardBonus(p.kid, parseInt(p.points), dec(p.reason || ''));
@@ -212,6 +213,38 @@ function redeemReward(kidName, rewardName, cost) {
 function checkPin(pin) {
   const stored = config_(SpreadsheetApp.openById(SS_ID)).parent_pin || '1234';
   return { valid: String(pin) === String(stored) };
+}
+
+// ── Undo a chore ─────────────────────────────────────────────────────
+function undoChore(kidName, choreName) {
+  const ss = SpreadsheetApp.openById(SS_ID);
+  const today = new Date().toDateString();
+  const logSheet = ss.getSheetByName('ChoresLog');
+  const lastRow = logSheet.getLastRow();
+  if (lastRow <= 1) return { success: false, message: 'Nothing to undo' };
+
+  const data = logSheet.getRange('A2:D' + lastRow).getValues();
+  // Find most recent matching entry today
+  for (let i = data.length - 1; i >= 0; i--) {
+    if (data[i][0] && new Date(data[i][0]).toDateString() === today
+        && data[i][1] === kidName && data[i][2] === choreName) {
+      const pts = data[i][3] || 0;
+      logSheet.deleteRow(i + 2);
+      // Deduct points
+      const kidsSheet = ss.getSheetByName('KidsData');
+      const kidsData = kidsSheet.getRange('A2:H10').getValues();
+      for (let j = 0; j < kidsData.length; j++) {
+        if (kidsData[j][0] === kidName) {
+          const newPts = Math.max(0, (kidsData[j][3] || 0) - pts);
+          const newTotal = Math.max(0, (kidsData[j][7] || 0) - pts);
+          kidsSheet.getRange(j + 2, 4).setValue(newPts);
+          kidsSheet.getRange(j + 2, 8).setValue(newTotal);
+          return { success: true, newTotal: newPts, pointsRemoved: pts };
+        }
+      }
+    }
+  }
+  return { success: false, message: 'Chore not found in today\'s log' };
 }
 
 // ── Activity feed ─────────────────────────────────────────────────────
