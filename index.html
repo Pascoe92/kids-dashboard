@@ -196,8 +196,21 @@ main{max-width:960px;margin:0 auto;padding:14px 14px 20px}
 #unlockBtn:hover{background:rgba(156,39,176,.38)}
 
 /* ── CALENDAR PAGE ── */
-.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.cal-nav h3{font-size:1.1rem;font-weight:700;color:var(--gold)}
+.cal-view-btn{padding:7px 16px;border-radius:20px;border:1px solid var(--border);background:none;color:var(--muted);font-size:.8rem;font-weight:600;font-family:inherit;cursor:pointer;transition:.15s}
+.cal-view-btn.active{background:var(--gold);color:#1a0533;border-color:var(--gold)}
+.cal-week-grid{display:grid;grid-template-columns:44px repeat(7,1fr);gap:0;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.cal-week-hdr{background:rgba(255,255,255,.04);padding:6px 4px;text-align:center;font-size:.65rem;font-weight:700;color:var(--muted);border-bottom:1px solid var(--border)}
+.cal-week-hdr.today-hdr{color:var(--gold)}
+.cal-time-col{font-size:.58rem;color:var(--muted);padding:0 4px;text-align:right;border-right:1px solid var(--border);height:40px;line-height:40px;border-bottom:1px solid rgba(255,255,255,.04)}
+.cal-week-cell{border-left:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.04);height:40px;position:relative;cursor:pointer}
+.cal-week-cell:hover{background:rgba(255,255,255,.04)}
+.cal-week-cell.today-col{background:rgba(255,193,7,.04)}
+.cal-week-evt{position:absolute;left:1px;right:1px;border-radius:4px;padding:1px 4px;font-size:.58rem;font-weight:600;color:#fff;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;z-index:2;cursor:pointer}
+.cal-day-row{display:flex;border-bottom:1px solid var(--border);min-height:48px}
+.cal-day-time{width:44px;flex-shrink:0;font-size:.6rem;color:var(--muted);padding:4px 6px 0;text-align:right;border-right:1px solid var(--border)}
+.cal-day-slot{flex:1;position:relative;cursor:pointer;min-height:48px}
+.cal-day-slot:hover{background:rgba(255,255,255,.03)}
+.cal-day-evt{background:var(--cal-blue);border-radius:6px;padding:3px 7px;margin:2px 4px;font-size:.78rem;font-weight:600;color:#fff;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:14px}
 .cal-dow{text-align:center;font-size:.6rem;font-weight:700;color:var(--muted);text-transform:uppercase;padding:4px 0}
 .cal-day{background:var(--card);border:1px solid var(--border);border-radius:8px;min-height:64px;padding:4px;cursor:pointer;transition:.15s}
@@ -405,26 +418,20 @@ footer{text-align:center;padding:16px;font-size:.68rem;color:rgba(255,255,255,.1
     <div class="page-header"><span style="font-size:1.8rem">📅</span><h2>Family Calendar</h2>
       <button class="btn btn-gold" onclick="openAddEvent()" style="margin-left:auto;padding:8px 16px;font-size:.82rem">+ Add Event</button>
     </div>
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-      <span id="calNameLbl" style="font-size:.82rem;color:var(--muted);flex:1"></span>
-      <button class="btn btn-ghost" onclick="openCalPicker()" style="padding:6px 12px;font-size:.78rem">🗓 Change Calendar</button>
+    <!-- View switcher -->
+    <div style="display:flex;gap:6px;margin-bottom:12px">
+      <button class="cal-view-btn active" id="calView-month" onclick="setCalView('month')">Month</button>
+      <button class="cal-view-btn" id="calView-week" onclick="setCalView('week')">Week</button>
+      <button class="cal-view-btn" id="calView-day" onclick="setCalView('day')">Day</button>
+      <span style="flex:1"></span>
+      <button class="btn btn-ghost" onclick="openCalPicker()" style="padding:6px 10px;font-size:.75rem">🗓 Calendar</button>
     </div>
-    <div class="cal-nav">
-      <button class="btn btn-ghost" style="padding:6px 12px" onclick="calChangeMonth(-1)">‹</button>
-      <h3 id="calMonthLbl"></h3>
-      <button class="btn btn-ghost" style="padding:6px 12px" onclick="calChangeMonth(1)">›</button>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <button class="btn btn-ghost" style="padding:6px 14px;font-size:1.1rem" onclick="calNav(-1)">‹</button>
+      <h3 id="calPeriodLbl" style="font-size:.95rem;font-weight:700;color:var(--gold);text-align:center"></h3>
+      <button class="btn btn-ghost" style="padding:6px 14px;font-size:1.1rem" onclick="calNav(1)">›</button>
     </div>
-    <div class="cal-grid" id="calGrid"></div>
-    <div id="calDayEvents" style="display:none">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-        <span id="calDayLbl" style="font-weight:700;font-size:.95rem"></span>
-        <div style="display:flex;gap:8px">
-          <button class="btn btn-gold" onclick="openAddEvent(calSelectedDate)" style="padding:6px 12px;font-size:.78rem">+ Add</button>
-          <button class="btn btn-ghost" onclick="document.getElementById('calDayEvents').style.display='none'" style="padding:6px 12px;font-size:.78rem">✕</button>
-        </div>
-      </div>
-      <div id="calDayList" class="cal-event-list"></div>
-    </div>
+    <div id="calBody"></div>
   </main>
 </div>
 
@@ -940,28 +947,169 @@ async function submitRedeem(){
 let calEvents=[];
 let calViewDate=new Date();
 let calSelectedDate=null;
+let calView='week'; // month | week | day
 let calId=localStorage.getItem('calId')||'default';
 const CAL_COLORS=['gold','green','blue','red','purple'];
 const CAL_COLOR_LABELS={gold:'⭐ Family',green:'✅ School',blue:'💙 Work',red:'❤️ Important',purple:'💜 Other'};
+const CAL_COLOR_HEX={gold:'#FFC107',green:'#66bb6a',blue:'#42a5f5',red:'#ef5350',purple:'#ab47bc'};
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MONTHS_S=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DAYS_L=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const DAYS_S=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
 async function initCal(){
   calViewDate=new Date();
-  document.getElementById('calGrid').innerHTML='<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--muted)"><span class="spin">⭐</span> Loading…</div>';
+  document.getElementById('calBody').innerHTML='<div style="text-align:center;padding:40px;color:var(--muted)"><span class="spin">⭐</span> Loading…</div>';
   try{
     const res=await api({action:'getCalEvents',calId});
-    if(res.success){
-      calEvents=res.events||[];
-      const lbl=document.getElementById('calNameLbl');
-      if(lbl) lbl.textContent=res.calName||'';
-    } else {
-      document.getElementById('calGrid').innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--muted)">Could not load calendar.<br><small>${res.error||''}</small></div>`;
-      return;
-    }
+    if(res.success) calEvents=res.events||[];
+    else{ document.getElementById('calBody').innerHTML=`<div style="text-align:center;padding:30px;color:var(--muted)">Could not load calendar.<br><small>${res.error||'Redeploy Apps Script and try again.'}</small></div>`; return; }
   }catch(e){
-    document.getElementById('calGrid').innerHTML='<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--muted)">Error loading calendar. Check Apps Script is deployed.</div>';
-    return;
+    document.getElementById('calBody').innerHTML='<div style="text-align:center;padding:30px;color:var(--muted)">Error — check Apps Script is deployed.</div>'; return;
   }
-  renderCalGrid();
+  renderCal();
+}
+
+function setCalView(v){
+  calView=v;
+  document.querySelectorAll('.cal-view-btn').forEach(b=>b.classList.toggle('active',b.id==='calView-'+v));
+  if(v==='day'&&!calSelectedDate) calSelectedDate=fmtDate_(new Date());
+  renderCal();
+}
+
+function calNav(dir){
+  if(calView==='month') calViewDate=new Date(calViewDate.getFullYear(),calViewDate.getMonth()+dir,1);
+  else if(calView==='week'){ calViewDate=new Date(calViewDate); calViewDate.setDate(calViewDate.getDate()+dir*7); }
+  else{ calViewDate=new Date(calViewDate); calViewDate.setDate(calViewDate.getDate()+dir); calSelectedDate=fmtDate_(calViewDate); }
+  renderCal();
+}
+
+function renderCal(){
+  if(calView==='month') renderMonth();
+  else if(calView==='week') renderWeek();
+  else renderDay();
+}
+
+// ── Month view ────────────────────────────────────────────────────────
+function renderMonth(){
+  const now=new Date(), y=calViewDate.getFullYear(), m=calViewDate.getMonth();
+  document.getElementById('calPeriodLbl').textContent=MONTHS[m]+' '+y;
+  const first=new Date(y,m,1), last=new Date(y,m+1,0);
+  let startDow=first.getDay()===0?6:first.getDay()-1;
+  let html='<div class="cal-grid">';
+  html+=DAYS_S.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  for(let i=0;i<startDow;i++){
+    const d=new Date(y,m,1-startDow+i);
+    html+=`<div class="cal-day other-month"><div class="cal-day-num">${d.getDate()}</div></div>`;
+  }
+  for(let d=1;d<=last.getDate();d++){
+    const ds=fmtDateStr_(y,m+1,d);
+    const isToday=now.getFullYear()===y&&now.getMonth()===m&&now.getDate()===d;
+    const evts=calEvents.filter(e=>e.date===ds);
+    const dots=evts.slice(0,2).map(e=>`<div class="cal-event-dot color-${e.color||'blue'}">${e.title}</div>`).join('');
+    const more=evts.length>2?`<div class="cal-more">+${evts.length-2} more</div>`:'';
+    html+=`<div class="cal-day${isToday?' today':''}" onclick="calSelectedDate='${ds}';setCalView('day')"><div class="cal-day-num">${d}</div>${dots}${more}</div>`;
+  }
+  const total=startDow+last.getDate();
+  const rem=(7-total%7)%7;
+  for(let i=1;i<=rem;i++) html+=`<div class="cal-day other-month"><div class="cal-day-num">${i}</div></div>`;
+  html+='</div>';
+  document.getElementById('calBody').innerHTML=html;
+}
+
+// ── Week view ─────────────────────────────────────────────────────────
+function renderWeek(){
+  const now=new Date();
+  const mon=getMonday_(calViewDate);
+  const weekDays=Array.from({length:7},(_,i)=>{const d=new Date(mon);d.setDate(d.getDate()+i);return d;});
+  document.getElementById('calPeriodLbl').textContent=`${fmtShort_(weekDays[0])} – ${fmtShort_(weekDays[6])}`;
+  const hours=Array.from({length:24},(_,i)=>i);
+  let html='<div class="cal-week-grid">';
+  // Header row
+  html+='<div class="cal-week-hdr"></div>';
+  html+=weekDays.map(d=>{
+    const isToday=d.toDateString()===now.toDateString();
+    return `<div class="cal-week-hdr${isToday?' today-hdr':''}">${DAYS_S[(d.getDay()+6)%7]}<br><span style="font-size:.8rem;font-weight:800">${d.getDate()}</span></div>`;
+  }).join('');
+  // Hour rows
+  hours.forEach(h=>{
+    html+=`<div class="cal-time-col">${h===0?'':String(h).padStart(2,'0')+':00'}</div>`;
+    weekDays.forEach(d=>{
+      const ds=fmtDate_(d);
+      const isToday=d.toDateString()===now.toDateString();
+      const slotEvts=calEvents.filter(e=>e.date===ds&&!e.allDay&&e.time&&parseInt(e.time.split(':')[0])===h);
+      const evtHtml=slotEvts.map(e=>`<div class="cal-week-evt" style="background:${CAL_COLOR_HEX[e.color||'blue']}" onclick="event.stopPropagation();showEventDetail('${e.id}')" title="${e.title}">${e.time} ${e.title}</div>`).join('');
+      html+=`<div class="cal-week-cell${isToday?' today-col':''}" onclick="calSelectedDate='${ds}';setCalView('day')">${evtHtml}</div>`;
+    });
+  });
+  html+='</div>';
+  // All-day events banner
+  const allDayEvts=weekDays.flatMap(d=>calEvents.filter(e=>e.date===fmtDate_(d)&&e.allDay).map(e=>({...e,dayLabel:DAYS_S[(d.getDay()+6)%7]+' '+d.getDate()})));
+  if(allDayEvts.length){
+    html='<div style="margin-bottom:8px">'+allDayEvts.map(e=>`<div class="cal-day-evt" style="background:${CAL_COLOR_HEX[e.color||'blue']};margin-bottom:4px"><span>${e.dayLabel}: ${e.title}</span><button onclick="deleteCalEvent('${e.id}')" style="background:none;border:none;color:#fff;cursor:pointer;font-size:.8rem">🗑</button></div>`).join('')+'</div>'+html;
+  }
+  document.getElementById('calBody').innerHTML=html;
+  // Scroll to 7am
+  setTimeout(()=>{const rows=document.querySelectorAll('.cal-time-col');if(rows[7])rows[7].scrollIntoView({block:'start'});},50);
+}
+
+// ── Day view ──────────────────────────────────────────────────────────
+function renderDay(){
+  const d=calSelectedDate?new Date(calSelectedDate+'T12:00:00'):calViewDate;
+  calViewDate=d;
+  calSelectedDate=fmtDate_(d);
+  document.getElementById('calPeriodLbl').textContent=`${DAYS_L[d.getDay()]} ${d.getDate()} ${MONTHS_S[d.getMonth()]} ${d.getFullYear()}`;
+  const ds=fmtDate_(d);
+  const dayEvts=calEvents.filter(e=>e.date===ds);
+  const allDay=dayEvts.filter(e=>e.allDay);
+  const timed=dayEvts.filter(e=>!e.allDay&&e.time).sort((a,b)=>a.time.localeCompare(b.time));
+  const untimed=dayEvts.filter(e=>!e.allDay&&!e.time);
+  let html='';
+  if(allDay.length||untimed.length){
+    html+=`<div style="margin-bottom:12px">${[...allDay,...untimed].map(e=>`
+      <div class="cal-day-evt" style="background:${CAL_COLOR_HEX[e.color||'blue']};margin-bottom:6px">
+        <div><div style="font-weight:700">${e.title}</div>${e.notes?`<div style="font-size:.72rem;opacity:.85">${e.notes}</div>`:''}</div>
+        <button onclick="deleteCalEvent('${e.id}')" style="background:none;border:none;color:#fff;cursor:pointer">🗑</button>
+      </div>`).join('')}</div>`;
+  }
+  if(timed.length){
+    html+=timed.map(e=>`
+      <div class="cal-day-row" style="align-items:stretch;min-height:56px">
+        <div class="cal-day-time">${e.time}${e.endTime?'<br>'+e.endTime:''}</div>
+        <div class="cal-day-slot">
+          <div class="cal-day-evt" style="background:${CAL_COLOR_HEX[e.color||'blue']};margin:4px">
+            <div><div style="font-weight:700">${e.title}</div>${e.notes?`<div style="font-size:.72rem;opacity:.85">${e.notes}</div>`:''}</div>
+            <button onclick="deleteCalEvent('${e.id}')" style="background:none;border:none;color:#fff;cursor:pointer">🗑</button>
+          </div>
+        </div>
+      </div>`).join('');
+  }
+  if(!dayEvts.length){
+    html=`<div style="text-align:center;padding:40px;color:var(--muted)">Nothing on this day.<br><br>
+      <button class="btn btn-gold" onclick="openAddEvent('${ds}')" style="padding:10px 20px">+ Add Event</button></div>`;
+  } else {
+    html+=`<div style="text-align:center;margin-top:16px"><button class="btn btn-gold" onclick="openAddEvent('${ds}')" style="padding:10px 20px">+ Add Event</button></div>`;
+  }
+  document.getElementById('calBody').innerHTML=html;
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────
+function fmtDate_(d){return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function fmtDateStr_(y,m,d){return`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;}
+function fmtShort_(d){return`${d.getDate()} ${MONTHS_S[d.getMonth()]}`;}
+function getMonday_(d){const c=new Date(d);const day=c.getDay();const diff=day===0?-6:1-day;c.setDate(c.getDate()+diff);return c;}
+
+function showEventDetail(id){
+  const e=calEvents.find(ev=>ev.id===id);
+  if(!e) return;
+  showModal(`
+    <h3 style="margin:0 0 12px;display:flex;align-items:center;gap:8px"><span style="width:12px;height:12px;border-radius:50%;background:${CAL_COLOR_HEX[e.color||'blue']};flex-shrink:0"></span>${e.title}</h3>
+    <p style="color:var(--muted);margin:0 0 6px">${e.date}${e.time?' at '+e.time:''}</p>
+    ${e.notes?`<p style="margin:0 0 16px">${e.notes}</p>`:'<p style="margin:0 0 16px;color:var(--muted)">No notes</p>'}
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost" onclick="deleteCalEvent('${e.id}');closeModal()" style="flex:1;color:#ef5350;border-color:#ef5350">🗑 Delete</button>
+      <button class="btn btn-ghost" onclick="closeModal()" style="flex:1">Close</button>
+    </div>`);
 }
 
 async function openCalPicker(){
@@ -969,7 +1117,7 @@ async function openCalPicker(){
   try{
     const res=await api({action:'getCalendarList'});
     if(!res.success||!res.calendars?.length){
-      document.querySelector('.modal-body').innerHTML='<p style="color:var(--muted)">No calendars found. Make sure Apps Script has calendar permission.</p><button class="btn btn-ghost" onclick="closeModal()" style="width:100%">Close</button>';
+      document.querySelector('.modal-body').innerHTML='<p style="color:var(--muted)">No calendars found. Make sure Apps Script has calendar permission and is redeployed.</p><button class="btn btn-ghost" onclick="closeModal()" style="width:100%;margin-top:8px">Close</button>';
       return;
     }
     document.querySelector('.modal-body').innerHTML=`
@@ -978,85 +1126,17 @@ async function openCalPicker(){
       ${res.calendars.map(c=>`
         <button onclick="selectCalendar('${c.id.replace(/'/g,"\\'")}','${c.name.replace(/'/g,"\\'")}',this)"
           class="btn btn-ghost" style="width:100%;text-align:left;margin-bottom:8px;display:flex;align-items:center;gap:10px;${calId===c.id?'border-color:var(--gold);background:rgba(255,193,7,.1)':''}">
-          <span style="width:12px;height:12px;border-radius:50%;background:${c.color};flex-shrink:0"></span>
+          <span style="width:12px;height:12px;border-radius:50%;background:${c.color};flex-shrink:0;display:inline-block"></span>
           <span>${c.name}${c.isDefault?' ⭐':''}</span>
         </button>`).join('')}
       <button class="btn btn-ghost" onclick="closeModal()" style="width:100%;margin-top:4px">Cancel</button>`;
   }catch(e){
-    document.querySelector('.modal-body').innerHTML='<p style="color:var(--muted)">Failed to load calendars.</p><button class="btn btn-ghost" onclick="closeModal()" style="width:100%">Close</button>';
+    document.querySelector('.modal-body').innerHTML='<p style="color:var(--muted)">Failed to load calendars.</p><button class="btn btn-ghost" onclick="closeModal()" style="width:100%;margin-top:8px">Close</button>';
   }
 }
 
 function selectCalendar(id,name){
-  calId=id;
-  localStorage.setItem('calId',id);
-  closeModal();
-  const lbl=document.getElementById('calNameLbl');
-  if(lbl) lbl.textContent=name;
-  initCal();
-}
-
-function renderCalGrid(){
-  const now=new Date();
-  const y=calViewDate.getFullYear(),m=calViewDate.getMonth();
-  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
-  document.getElementById('calMonthLbl').textContent=months[m]+' '+y;
-  const first=new Date(y,m,1);
-  const last=new Date(y,m+1,0);
-  // Start on Monday
-  let startDow=first.getDay()===0?6:first.getDay()-1;
-  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  let html=days.map(d=>`<div class="cal-dow">${d}</div>`).join('');
-  // Prev month padding
-  for(let i=0;i<startDow;i++){
-    const d=new Date(y,m,1-startDow+i);
-    html+=`<div class="cal-day other-month"><div class="cal-day-num">${d.getDate()}</div></div>`;
-  }
-  // This month
-  for(let d=1;d<=last.getDate();d++){
-    const dateStr=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const isToday=now.getFullYear()===y&&now.getMonth()===m&&now.getDate()===d;
-    const dayEvts=calEvents.filter(e=>e.date===dateStr);
-    const dots=dayEvts.slice(0,3).map(e=>`<div class="cal-event-dot color-${e.color||'blue'}" onclick="event.stopPropagation();openDayView('${dateStr}')">${e.title}</div>`).join('');
-    const more=dayEvts.length>3?`<div class="cal-more">+${dayEvts.length-3} more</div>`:'';
-    html+=`<div class="cal-day${isToday?' today':''}" onclick="openDayView('${dateStr}')"><div class="cal-day-num">${d}</div>${dots}${more}</div>`;
-  }
-  // Next month padding to fill grid
-  const total=startDow+last.getDate();
-  const remaining=(7-total%7)%7;
-  for(let i=1;i<=remaining;i++) html+=`<div class="cal-day other-month"><div class="cal-day-num">${i}</div></div>`;
-  document.getElementById('calGrid').innerHTML=html;
-}
-
-function calChangeMonth(dir){
-  calViewDate=new Date(calViewDate.getFullYear(),calViewDate.getMonth()+dir,1);
-  renderCalGrid();
-  document.getElementById('calDayEvents').style.display='none';
-}
-
-function openDayView(dateStr){
-  calSelectedDate=dateStr;
-  const d=new Date(dateStr+'T12:00:00');
-  const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  document.getElementById('calDayLbl').textContent=`${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
-  const evts=calEvents.filter(e=>e.date===dateStr);
-  const panel=document.getElementById('calDayEvents');
-  if(!evts.length){
-    document.getElementById('calDayList').innerHTML=`<div style="color:var(--muted);font-size:.85rem;text-align:center;padding:16px">Nothing on this day — tap + Add to create an event.</div>`;
-  } else {
-    document.getElementById('calDayList').innerHTML=evts.map(e=>`
-      <div class="cal-event-item">
-        <div class="cal-event-color" style="background:var(--cal-${e.color||'blue'})"></div>
-        <div class="cal-event-info">
-          <div class="cal-event-title">${e.title}</div>
-          <div class="cal-event-meta">${e.time?e.time+' · ':''}${CAL_COLOR_LABELS[e.color||'blue']||''}${e.notes?' · '+e.notes:''}</div>
-        </div>
-        <button class="btn btn-ghost" onclick="deleteCalEvent('${e.id}')" style="padding:4px 8px;font-size:.7rem;flex-shrink:0">🗑</button>
-      </div>`).join('');
-  }
-  panel.style.display='block';
-  panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+  calId=id;localStorage.setItem('calId',id);closeModal();initCal();
 }
 
 function openAddEvent(dateStr){
