@@ -1002,7 +1002,6 @@ function openDayView(dateStr){
 }
 
 function openAddEvent(dateStr){
-  // Pre-fill date if coming from a day view
   const today=dateStr||new Date().toISOString().slice(0,10);
   showModal(`
     <h3 style="margin:0 0 16px">📅 Add Event</h3>
@@ -1010,9 +1009,11 @@ function openAddEvent(dateStr){
     <input class="modal-input" id="evtTitle" placeholder="e.g. Dentist appointment" autofocus>
     <label class="modal-label">Date</label>
     <input class="modal-input" id="evtDate" type="date" value="${today}">
-    <label class="modal-label">Time (optional)</label>
-    <input class="modal-input" id="evtTime" type="time">
-    <label class="modal-label">Category</label>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div><label class="modal-label">Start time (optional)</label><input class="modal-input" id="evtTime" type="time"></div>
+      <div><label class="modal-label">End time (optional)</label><input class="modal-input" id="evtEndTime" type="time"></div>
+    </div>
+    <label class="modal-label">Category / colour</label>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
       ${CAL_COLORS.map(c=>`<button onclick="selectEvtColor('${c}',this)" id="evtCol_${c}" class="btn btn-ghost" style="padding:5px 10px;font-size:.75rem;${c==='gold'?'border-color:var(--gold);background:rgba(255,193,7,.15)':''}">${CAL_COLOR_LABELS[c]}</button>`).join('')}
     </div>
@@ -1020,7 +1021,7 @@ function openAddEvent(dateStr){
     <label class="modal-label">Notes (optional)</label>
     <input class="modal-input" id="evtNotes" placeholder="Any extra details">
     <div style="display:flex;gap:8px;margin-top:4px">
-      <button class="btn btn-gold" onclick="submitAddEvent()" style="flex:1">Save Event ✅</button>
+      <button class="btn btn-gold" onclick="submitAddEvent()" style="flex:1">Save to Google Calendar ✅</button>
       <button class="btn btn-ghost" onclick="closeModal()" style="flex:1">Cancel</button>
     </div>`);
 }
@@ -1035,15 +1036,24 @@ async function submitAddEvent(){
   const title=document.getElementById('evtTitle').value.trim();
   const date=document.getElementById('evtDate').value;
   const time=document.getElementById('evtTime').value;
+  const endTime=document.getElementById('evtEndTime').value;
   const color=document.getElementById('evtColor').value||'gold';
   const notes=document.getElementById('evtNotes').value.trim();
   if(!title||!date){alert('Please add a title and date');return;}
   closeModal();
-  const id=String(Date.now());
-  calEvents.push({id,title,date,time,color,notes});
+  // Optimistic add
+  const tempId='tmp_'+Date.now();
+  calEvents.push({id:tempId,title,date,time,endTime,color,notes});
   renderCalGrid();
   if(date===calSelectedDate) openDayView(date);
-  api({action:'addCalEvent',id,title:encodeURIComponent(title),date,time,color,notes:encodeURIComponent(notes)}).catch(()=>{});
+  try{
+    const res=await api({action:'addCalEvent',id:tempId,title:encodeURIComponent(title),date,time,endTime,color,notes:encodeURIComponent(notes)});
+    if(res.success){
+      // Replace temp id with real Google Calendar event id
+      const evt=calEvents.find(e=>e.id===tempId);
+      if(evt&&res.id) evt.id=res.id;
+    }
+  }catch(e){}
 }
 
 async function deleteCalEvent(id){

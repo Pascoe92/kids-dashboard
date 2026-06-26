@@ -32,8 +32,8 @@ function handleRequest(e) {
       case 'getActivity':       return { activity: getRecentActivity() };
       case 'initSheets':        return initializeSheets();
       // Calendar
-      case 'getCalEvents':    return getCalEvents();
-      case 'addCalEvent':     return addCalEvent(p.id, dec(p.title), p.date, p.time||'', p.color||'gold', dec(p.notes||''));
+      case 'getCalEvents':    return getCalEvents(p.calId||'');
+      case 'addCalEvent':     return addCalEvent(p.id, dec(p.title), p.date, p.time||'', p.color||'gold', dec(p.notes||''), p.endTime||'');
       case 'deleteCalEvent':  return deleteCalEvent(p.id);
       // Meal Planner
       case 'getMealPlan':       return getMealPlan(p.week);
@@ -333,34 +333,94 @@ function updatePoints_(ss, kidName, pts, config, isBonus) {
   return { success: false };
 }
 
-// ── Calendar ──────────────────────────────────────────────────────────
-function getCalEvents() {
-  const ss = SpreadsheetApp.openById(SS_ID);
-  const sheet = ss.getSheetByName('CalendarEvents');
-  const last = sheet.getLastRow();
-  if (last <= 1) return { success: true, events: [] };
-  const events = sheet.getRange('A2:F' + last).getValues()
-    .filter(r => r[0])
-    .map(r => ({ id: String(r[0]), title: r[1], date: r[2], time: r[3], color: r[4], notes: r[5] }));
-  return { success: true, events };
+// ── Calendar (Google Calendar API via CalendarApp) ────────────────────
+function getCalEvents(calId) {
+  try {
+    const cal = calId ? CalendarApp.getCalendarById(calId) : CalendarApp.getDefaultCalendar();
+    if (!cal) return { success: false, error: 'Calendar not found' };
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth() - 1, 1); // prev month
+    const end   = new Date(now.getFullYear(), now.getMonth() + 3, 0); // 2 months ahead
+    const events = cal.getEvents(start, end).map(e => ({
+      id: e.getId(),
+      title: e.getTitle(),
+      date: Utilities.formatDate(e.getStartTime(), Session.getScriptTimeZone(), 'yyyy-MM-dd'),
+      time: e.isAllDayEvent() ? '' : Utilities.formatDate(e.getStartTime(), Session.getScriptTimeZone(), 'HH:mm'),
+      endTime: e.isAllDayEvent() ? '' : Utilities.formatDate(e.getEndTime(), Session.getScriptTimeZone(), 'HH:mm'),
+      allDay: e.isAllDayEvent(),
+      notes: e.getDescription() || '',
+      color: gcalColorToApp_(e.getColor())
+    }));
+    return { success: true, events, calName: cal.getName() };
+  } catch(err) {
+    return { success: false, error: err.message };
+  }
 }
 
-function addCalEvent(id, title, date, time, color, notes) {
-  const ss = SpreadsheetApp.openById(SS_ID);
-  ss.getSheetByName('CalendarEvents').appendRow([id || String(Date.now()), title, date, time || '', color || 'gold', notes || '']);
-  return { success: true };
+function addCalEvent(id, title, date, time, color, notes, endTime) {
+  try {
+    const cal = CalendarApp.getDefaultCalendar();
+    const parts = date.split('-').map(Number);
+    let event;
+    if (time) {
+      const timeParts = time.split(':').map(Number);
+      const start = new Date(parts[0], parts[1]-1, parts[2], timeParts[0], timeParts[1]);
+      const end = endTime
+        ? (() => { const ep = endTime.split(':').map(Number); return new Date(parts[0], parts[1]-1, parts[2], ep[0], ep[1]); })()
+        : new Date(start.getTime() + 60*60*1000);
+      event = cal.createEvent(title, start, end, { description: notes || '' });
+    } else {
+      event = cal.createAllDayEvent(title, new Date(parts[0], parts[1]-1, parts[2]), { description: notes || '' });
+    }
+    const gcalColor = appColorToGcal_(color);
+    if (gcalColor) event.setColor(gcalColor);
+    return { success: true, id: event.getId() };
+  } catch(err) {
+    return { success: false, error: err.message };
+  }
 }
 
 function deleteCalEvent(id) {
-  const ss = SpreadsheetApp.openById(SS_ID);
-  const sheet = ss.getSheetByName('CalendarEvents');
-  const last = sheet.getLastRow();
-  if (last <= 1) return { success: false };
-  const data = sheet.getRange('A2:A' + last).getValues();
-  for (let i = 0; i < data.length; i++) {
-    if (String(data[i][0]) === String(id)) { sheet.deleteRow(i + 2); return { success: true }; }
+  try {
+    const events = CalendarApp.getDefaultCalendar().getEventById(id)
+      || CalendarApp.getEventById(id);
+    if (events) { events.deleteEvent(); return { success: true }; }
+    // Try searching across all calendars
+    const allCals = CalendarApp.getAllCalendars();
+    for (const cal of allCals) {
+      const e = cal.getEventById(id);
+      if (e) { e.deleteEvent(); return { success: true }; }
+    }
+    return { success: false, error: 'Event not found' };
+  } catch(err) {
+    return { success: false, error: err.message };
   }
-  return { success: false };
+}
+
+function gcalColorToApp_(color) {
+  const map = {
+    [CalendarApp.EventColor.YELLOW]: 'gold',
+    [CalendarApp.EventColor.GREEN]:  'green',
+    [CalendarApp.EventColor.BLUE]:   'blue',
+    [CalendarApp.EventColor.RED]:    'red',
+    [CalendarApp.EventColor.PURPLE]: 'purple',
+    [CalendarApp.EventColor.CYAN]:   'blue',
+    [CalendarApp.EventColor.TEAL]:   'green',
+    [CalendarApp.EventColor.PINK]:   'red',
+    [CalendarApp.EventColor.GRAY]:   'purple',
+  };
+  return map[color] || 'blue';
+}
+
+function appColorToGcal_(color) {
+  const map = {
+    gold:   CalendarApp.EventColor.YELLOW,
+    green:  CalendarApp.EventColor.GREEN,
+    blue:   CalendarApp.EventColor.BLUE,
+    red:    CalendarApp.EventColor.RED,
+    purple: CalendarApp.EventColor.PURPLE,
+  };
+  return map[color] || null;
 }
 
 // ── Meal Planner ──────────────────────────────────────────────────────
