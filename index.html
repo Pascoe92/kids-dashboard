@@ -618,7 +618,7 @@ function goPage(name) {
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.toggle('active',t.dataset.page===name));
   document.getElementById('page-'+name).classList.add('active');
   activePage=name;
-  if(name==='kids' && !S.kids.length) loadAll();
+  if(name==='kids'){ if(S.kids.length) renderKidsApp(); else loadAll(); }
   if(name==='home') refreshHome();
   if(name==='meals') renderMealGrid();
   if(name==='shopping') loadShopList();
