@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0f0a1e">
@@ -26,7 +26,7 @@ body{
   background-image:radial-gradient(ellipse at 20% 0%,rgba(79,195,247,.07) 0%,transparent 50%),
                    radial-gradient(ellipse at 80% 10%,rgba(129,199,132,.07) 0%,transparent 50%);
   min-height:100vh;font-family:'Segoe UI',system-ui,sans-serif;
-  color:var(--text);overflow-x:hidden;padding-bottom:var(--nav-h);
+  color:var(--text);overflow-x:hidden;padding-top:var(--nav-h);
 }
 canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:9999}
 
@@ -50,20 +50,20 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:9999}
 
 /* ── BOTTOM NAV ── */
 .bottom-nav{
-  position:fixed;bottom:0;left:0;right:0;z-index:200;
+  position:fixed;top:0;left:0;right:0;z-index:200;
   background:rgba(10,8,25,.95);backdrop-filter:blur(20px);
-  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
   height:var(--nav-h);display:flex;align-items:center;justify-content:space-around;
   padding:0 4px;
 }
 .nav-tab{
   flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:3px;cursor:pointer;padding:6px 2px;border:none;background:none;
+  gap:3px;cursor:pointer;padding:8px 2px;border:none;background:none;
   color:var(--muted);transition:color .2s;font-family:inherit;
 }
 .nav-tab.active{color:var(--gold)}
-.nav-tab-ico{font-size:1.35rem;line-height:1}
-.nav-tab-lbl{font-size:.6rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.nav-tab-ico{font-size:1.5rem;line-height:1}
+.nav-tab-lbl{font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
 
 /* ── PAGES ── */
 .page{display:none;min-height:calc(100vh - var(--nav-h) - 60px)}
