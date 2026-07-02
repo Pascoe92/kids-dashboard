@@ -165,6 +165,10 @@ main{max-width:960px;margin:0 auto;padding:14px 14px 20px}
 .strike-hold-btn.charging .hold-fill{width:100%;transition:width 3s linear}
 .strike-hold-btn span{position:relative;z-index:1}
 .chores-lbl{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.chore-period{margin-bottom:12px}
+.chore-period:last-child{margin-bottom:0}
+.chore-period-lbl{display:flex;align-items:center;gap:8px;font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:7px}
+.chore-period-lbl::after{content:'';flex:1;height:1px;background:var(--border)}
 .chores-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .chore-btn{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:12px;padding:9px 8px;cursor:pointer;color:var(--text);font-family:inherit;font-size:.74rem;text-align:left;transition:all .18s;user-select:none}
 .chore-btn:hover:not(.done){background:rgba(255,255,255,.12);transform:scale(1.02)}
@@ -604,6 +608,7 @@ const API='https://script.google.com/macros/s/AKfycbwngRP4y6aTyoKOjoH_kfeYCxz45S
 // STATE
 // ═══════════════════════════════════════════════════
 let S={kids:[],chores:[],rewards:[],config:{},completedToday:{}};
+const CHORE_PERIODS=[['Morning','🌅'],['After School','🎒'],['Bedtime','🌙'],['Bonus','⭐']];
 let activePage='home';
 let pinBuf='',pinCb=null;
 let curAction=null,selKid=null,selRedKid=null,curReward=null;
@@ -749,12 +754,19 @@ function renderKid(kid){
   const kidChores=S.chores.filter(c=>c.kids==='Both'||c.kids===kid.name);
   const doneCount=kidChores.filter(c=>S.completedToday[`${kid.name}|${c.name}`]).length;
   const allDone=doneCount===kidChores.length&&kidChores.length>0;
-  const choreHTML=kidChores.map(c=>{
+  const renderChoreBtn=c=>{
     const done=S.completedToday[`${kid.name}|${c.name}`];
     const sc=c.name.replace(/'/g,"\\'");
     const onclick=done?`onclick="undoChore('${kid.name}','${sc}',this)"`:`onclick="doChore('${kid.name}','${sc}',this)"`;
     return `<button class="chore-btn ${done?'done':''}" ${onclick}><span class="chore-ico">${done?'✅':c.emoji}</span><span>${c.name}</span>${done?'<span class="undo-hint">↩ undo</span>':''}</button>`;
-  }).join('');
+  };
+  const periodNames=CHORE_PERIODS.map(p=>p[0]);
+  const otherChores=kidChores.filter(c=>!periodNames.includes(c.period));
+  const choreHTML=CHORE_PERIODS.map(([period,ico])=>{
+    const items=kidChores.filter(c=>c.period===period);
+    if(!items.length) return '';
+    return `<div class="chore-period"><div class="chore-period-lbl">${ico} ${period}</div><div class="chores-grid">${items.map(renderChoreBtn).join('')}</div></div>`;
+  }).concat(otherChores.length?[`<div class="chore-period"><div class="chore-period-lbl">📋 Other</div><div class="chores-grid">${otherChores.map(renderChoreBtn).join('')}</div></div>`]:[]).join('');
   const rewardHTML=S.rewards.map(r=>{
     const can=kid.points>=r.cost;
     const sn=r.name.replace(/'/g,"\\'");
@@ -790,7 +802,7 @@ function renderKid(kid){
       </button>
     </div>
     <div class="chores-lbl">Today's Chores</div>
-    <div class="chores-grid" id="chores-grid-${kid.name}">${choreHTML}</div>
+    <div id="chores-grid-${kid.name}">${choreHTML}</div>
     <div class="rewards-lbl">🎁 Rewards</div>
     <div class="rewards-scroll">${rewardHTML}</div>
   </div>`;

@@ -80,21 +80,21 @@ function initializeSheets() {
       ['Finley', 3, '🐸', 0, 0, 0, '', 0]
     ],
     ChoresList: [
-      ['Chore', 'Emoji', 'Kids'],
-      ['Put shoes away',           '👟', 'Both'],
-      ['Hang coat up',             '🧥', 'Both'],
-      ['Make bed',                 '🛏️', 'Both'],
-      ['Tidy toys',                '🧸', 'Both'],
-      ['Dirty clothes in basket',  '🧺', 'Both'],
-      ['Brush teeth (morning)',    '🪥', 'Both'],
-      ['Brush teeth (night)',      '🪥', 'Both'],
-      ['Wash hands before meals',  '🧼', 'Both'],
-      ['Pack school bag',          '🎒', 'Myles'],
-      ['Read for 10 minutes',      '📚', 'Myles'],
-      ['Help set the table',       '🍽️', 'Myles'],
-      ['Help tidy lounge',         '🛋️', 'Myles'],
-      ['Pick up 5 toys',           '🪀', 'Finley'],
-      ['Help with washing up',     '🫧', 'Finley']
+      ['Chore', 'Emoji', 'Kids', 'Period'],
+      ['Make bed',                 '🛏️', 'Both',   'Morning'],
+      ['Brush teeth (morning)',    '🪥', 'Both',   'Morning'],
+      ['Pack school bag',          '🎒', 'Myles',  'Morning'],
+      ['Put shoes away',           '👟', 'Both',   'After School'],
+      ['Hang coat up',             '🧥', 'Both',   'After School'],
+      ['Tidy toys',                '🧸', 'Both',   'After School'],
+      ['Wash hands before meals',  '🧼', 'Both',   'After School'],
+      ['Help set the table',       '🍽️', 'Myles',  'After School'],
+      ['Pick up 5 toys',           '🪀', 'Finley', 'After School'],
+      ['Dirty clothes in basket',  '🧺', 'Both',   'Bedtime'],
+      ['Help tidy lounge',         '🛋️', 'Myles',  'Bedtime'],
+      ['Help with washing up',     '🫧', 'Finley', 'Bedtime'],
+      ['Brush teeth (night)',      '🪥', 'Both',   'Bedtime'],
+      ['Read for 10 minutes',      '📚', 'Myles',  'Bonus']
     ],
     Rewards: [
       ['Reward', 'Points', 'Emoji', 'Active'],
@@ -173,8 +173,8 @@ function getData() {
     totalEarned: r[7]||0
   }));
 
-  const chores = rows_(ss, 'ChoresList', 'A2:C30').filter(r => r[0])
-    .map(r => ({ name: r[0], emoji: r[1], kids: r[2] }));
+  const chores = rows_(ss, 'ChoresList', 'A2:D30').filter(r => r[0])
+    .map(r => ({ name: r[0], emoji: r[1], kids: r[2], period: r[3] || '' }));
 
   const rewards = rows_(ss, 'Rewards', 'A2:D20').filter(r => r[0] && r[3])
     .map(r => ({ name: r[0], cost: r[1], emoji: r[2] }));
