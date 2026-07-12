@@ -615,6 +615,17 @@ const API='https://script.google.com/macros/s/AKfycbwngRP4y6aTyoKOjoH_kfeYCxz45S
 let S={kids:[],chores:[],rewards:[],config:{},completedToday:{}};
 const CHORE_PERIODS=[['Morning','🌅'],['After School','🎒'],['Bedtime','🌙'],['Bonus','⭐']];
 
+const DAY_ABBR=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+function choreAppliesToday(chore){
+  const days=(chore.days||'').trim();
+  if(!days||/^all$/i.test(days)) return true;
+  const dow=new Date().getDay();
+  if(/^weekdays?$/i.test(days)) return dow>=1&&dow<=5;
+  if(/^weekends?$/i.test(days)) return dow===0||dow===6;
+  const today=DAY_ABBR[dow].toLowerCase();
+  return days.split(',').some(d=>d.trim().slice(0,3).toLowerCase()===today);
+}
+
 function avatarHTML(kid){
   return `<span class="avatar-photo-wrap"><img class="avatar-photo" src="avatars/${kid.name.toLowerCase()}.png" alt="${kid.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="avatar-emoji">${kid.avatar}</span></span>`;
 }
@@ -712,7 +723,7 @@ function renderHomeKids(){
     const prev=next?(S.rewards[S.rewards.indexOf(next)-1]?.cost||0):0;
     const pct=next?Math.min(100,(kid.points-prev)/(next.cost-prev)*100):100;
     const cls=kid.name.toLowerCase();
-    const kidChores=S.chores.filter(c=>c.kids==='Both'||c.kids===kid.name);
+    const kidChores=S.chores.filter(c=>(c.kids==='Both'||c.kids===kid.name)&&choreAppliesToday(c));
     const done=kidChores.filter(c=>S.completedToday[`${kid.name}|${c.name}`]).length;
     return `<div class="home-kid-card ${cls}" onclick="goPage('kids')">
       <div class="hk-top"><div class="hk-avatar">${avatarHTML(kid)}</div><div class="hk-mood">${mood}</div></div>
@@ -760,7 +771,7 @@ function renderKid(kid){
   const prev=next?(S.rewards[S.rewards.indexOf(next)-1]?.cost||0):0;
   const pct=next?Math.min(100,(kid.points-prev)/(next.cost-prev)*100):100;
   const nextLabel=next?`${next.emoji} ${next.name} — ${next.cost-kid.points} pts away`:'🏆 All rewards unlocked!';
-  const kidChores=S.chores.filter(c=>c.kids==='Both'||c.kids===kid.name);
+  const kidChores=S.chores.filter(c=>(c.kids==='Both'||c.kids===kid.name)&&choreAppliesToday(c));
   const doneCount=kidChores.filter(c=>S.completedToday[`${kid.name}|${c.name}`]).length;
   const allDone=doneCount===kidChores.length&&kidChores.length>0;
   const renderChoreBtn=c=>{
@@ -835,7 +846,7 @@ async function doChore(kidName,choreName,btn){
   S.completedToday[`${kidName}|${choreName}`]=true;
   confettiBurst(10);
   spawnPop(`+${parseInt(S.config.points_per_chore)||10}⭐`,btn);
-  const kidChores=S.chores.filter(c=>c.kids==='Both'||c.kids===kidName);
+  const kidChores=S.chores.filter(c=>(c.kids==='Both'||c.kids===kidName)&&choreAppliesToday(c));
   const doneNow=kidChores.filter(c=>S.completedToday[`${kidName}|${c.name}`]).length;
   const countEl=document.getElementById(`chores-${kidName}`);
   if(countEl){countEl.textContent=`${doneNow}/${kidChores.length}`;countEl.classList.add('bounce');setTimeout(()=>countEl.classList.remove('bounce'),400);}
@@ -866,7 +877,7 @@ async function undoChore(kidName,choreName,btn){
       if(kid) kid.points=res.newTotal;
       refreshStats(kidName,res.newTotal,S.kids.find(k=>k.name===kidName)?.streak||0);
       spawnPop(`-${res.pointsRemoved}⭐`,btn,'#ff8a80');
-      const kidChores=S.chores.filter(c=>c.kids==='Both'||c.kids===kidName);
+      const kidChores=S.chores.filter(c=>(c.kids==='Both'||c.kids===kidName)&&choreAppliesToday(c));
       const doneNow=kidChores.filter(c=>S.completedToday[`${kidName}|${c.name}`]).length;
       const countEl=document.getElementById(`chores-${kidName}`);
       if(countEl) countEl.textContent=`${doneNow}/${kidChores.length}`;
