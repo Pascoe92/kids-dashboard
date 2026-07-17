@@ -339,6 +339,11 @@ main{max-width:960px;margin:0 auto;padding:14px 14px 20px}
 .kid-btns{display:flex;gap:10px;margin-bottom:14px}
 .kid-pick{flex:1;padding:12px;border-radius:13px;border:2px solid var(--border);background:rgba(255,255,255,.05);color:var(--text);font-size:.9rem;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s}
 .kid-pick.sel{border-color:var(--gold);background:rgba(255,215,0,.1)}
+.pts-btns{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.pts-pick{padding:14px 6px;border-radius:13px;border:2px solid var(--border);background:rgba(255,255,255,.05);color:var(--text);font-size:1.05rem;font-weight:800;font-family:inherit;cursor:pointer;transition:all .2s}
+.pts-pick:hover{background:rgba(255,255,255,.1);transform:translateY(-1px)}
+.pts-pick:active{transform:scale(.94)}
+.pts-pick.sel{border-color:var(--gold);background:rgba(255,215,0,.15);color:var(--gold);box-shadow:0 0 12px rgba(255,215,0,.35)}
 .modal-input{width:100%;padding:11px 14px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.07);color:var(--text);font-size:.88rem;font-family:inherit;margin-bottom:10px;outline:none}
 .modal-input::placeholder{color:var(--muted)}
 .modal-sub{width:100%;padding:13px;border-radius:13px;border:none;font-size:.9rem;font-weight:800;font-family:inherit;cursor:pointer;background:linear-gradient(135deg,var(--gold),#FFA000);color:#1a0533;transition:all .2s;margin-bottom:6px}
@@ -565,7 +570,14 @@ footer{text-align:center;padding:16px;font-size:.68rem;color:rgba(255,255,255,.1
       <button class="kid-pick" id="pickFinley" onclick="pickKid('Finley')">🐸 Finley</button>
     </div>
     <input class="modal-input" id="actReason" placeholder="Reason / notes (optional)">
-    <input class="modal-input" id="actPoints" placeholder="Points to award" type="number" min="1" style="display:none">
+    <div class="pts-btns" id="ptsBtns" style="display:none">
+      <button class="pts-pick" onclick="pickPoints(10)">10</button>
+      <button class="pts-pick" onclick="pickPoints(30)">30</button>
+      <button class="pts-pick" onclick="pickPoints(50)">50</button>
+      <button class="pts-pick" onclick="pickPoints(80)">80</button>
+      <button class="pts-pick" onclick="pickPoints(100)">100</button>
+      <button class="pts-pick" onclick="pickPoints(200)">200</button>
+    </div>
     <button class="modal-sub" onclick="submitAction()">Confirm ✓</button>
     <button class="modal-cancel" onclick="closeAction()">Cancel</button>
   </div>
@@ -617,7 +629,7 @@ function avatarHTML(kid){
   return `<span class="avatar-photo-wrap"><img class="avatar-photo" src="avatars/${kid.name.toLowerCase()}.png" alt="${kid.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="avatar-emoji">${kid.avatar}</span></span>`;
 }
 let activePage='home';
-let curAction=null,selKid=null,selRedKid=null,curReward=null;
+let curAction=null,selKid=null,selRedKid=null,curReward=null,selPoints=null;
 let currentWeekStart=getMonday(new Date());
 let mealData={};
 let shopItems=[];
@@ -918,8 +930,9 @@ function openAction(type){
   document.getElementById('actDesc').textContent=cfg[type].d;
   document.getElementById('actReason').value='';
   document.getElementById('actReason').placeholder=cfg[type].reasonReq?'Reason (required)':'Reason / notes (optional)';
-  document.getElementById('actPoints').value='';
-  document.getElementById('actPoints').style.display=cfg[type].pts?'block':'none';
+  selPoints=null;
+  document.getElementById('ptsBtns').style.display=cfg[type].pts?'grid':'none';
+  document.querySelectorAll('.pts-pick').forEach(b=>b.classList.remove('sel'));
   document.querySelectorAll('.kid-pick').forEach(b=>b.classList.remove('sel'));
   document.getElementById('actionOverlay').classList.add('show');
 }
@@ -968,12 +981,13 @@ function onChoreHoldStart(kidName,choreName,btn){
 }
 function onChoreHoldEnd(btn){ endHold(btn); }
 function pickKid(n){selKid=n;document.getElementById('pickMyles').classList.toggle('sel',n==='Myles');document.getElementById('pickFinley').classList.toggle('sel',n==='Finley');}
-function closeAction(){document.getElementById('actionOverlay').classList.remove('show');curAction=selKid=null;}
+function pickPoints(n){selPoints=n;document.querySelectorAll('.pts-pick').forEach(b=>b.classList.toggle('sel',parseInt(b.textContent)===n));}
+function closeAction(){document.getElementById('actionOverlay').classList.remove('show');curAction=selKid=null;selPoints=null;}
 
 async function submitAction(){
   if(!selKid){alert('Please select a kid first!');return;}
   const reason=document.getElementById('actReason').value;
-  const pts=document.getElementById('actPoints').value;
+  const pts=selPoints;
   if(curAction==='strike'){
     if(!reason||!reason.trim()){alert('Please enter a reason for the strike!');return;}
     const res=await api({action:'addStrike',kid:selKid,reason:encodeURIComponent(reason.trim())});
@@ -982,7 +996,7 @@ async function submitAction(){
     const res=await api({action:'removeStrike',kid:selKid});
     if(res.success){const k=S.kids.find(k=>k.name===selKid);if(k)k.strikes=res.strikes;updateDots(selKid,res.strikes);if(res.strikes<(parseInt(S.config.strike_limit)||5))document.getElementById(`con-${selKid}`)?.classList.remove('show');closeAction();}
   }else if(curAction==='bonus'){
-    if(!pts||isNaN(pts)||parseInt(pts)<1){alert('Enter a valid points amount!');return;}
+    if(!pts){alert('Pick how many points to award!');return;}
     const res=await api({action:'awardBonus',kid:selKid,points:parseInt(pts),reason:encodeURIComponent(reason||'Good behaviour')});
     if(res.success){const k=S.kids.find(k=>k.name===selKid);if(k)k.points=res.newTotal;refreshStats(selKid,res.newTotal,S.kids.find(k=>k.name===selKid)?.streak||0);closeAction();celebrate('⭐',`${selKid} earned ${pts} bonus points!`);confettiBurst(20);}
   }
