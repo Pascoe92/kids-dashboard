@@ -626,18 +626,43 @@ function deleteNote(id) {
   return { success: false };
 }
 
+// Fallback safety net: catches the reset if the scheduled trigger below
+// (setupWeeklyStrikeReset) hasn't been installed, or a run was missed.
 function maybeResetStrikes_() {
   if (new Date().getDay() !== 1) return; // not Monday
   const ss = SpreadsheetApp.openById(SS_ID);
-  const configSheet = ss.getSheetByName('Config');
-  const data = configSheet.getRange('A2:B20').getValues();
-  let resetRow = -1, lastReset = null;
-  data.forEach((r, i) => {
-    if (r[0] === 'last_strike_reset') { resetRow = i + 2; lastReset = r[1] ? new Date(r[1]) : null; }
-  });
+  const lastReset = getLastStrikeReset_(ss);
   const today = new Date().toDateString();
   if (lastReset && lastReset.toDateString() === today) return;
-  ss.getSheetByName('KidsData').getRange('A2:H10').getValues()
-    .forEach((r, i) => { if (r[0]) ss.getSheetByName('KidsData').getRange(i + 2, 5).setValue(0); });
-  if (resetRow > 0) configSheet.getRange(resetRow, 2).setValue(new Date().toISOString());
+  resetAllStrikes_();
+}
+
+function getLastStrikeReset_(ss) {
+  const data = ss.getSheetByName('Config').getRange('A2:B20').getValues();
+  const row = data.find(r => r[0] === 'last_strike_reset');
+  return row && row[1] ? new Date(row[1]) : null;
+}
+
+// The actual reset. Called by the weekly trigger (see setupWeeklyStrikeReset)
+// and as a fallback from maybeResetStrikes_.
+function resetAllStrikes_() {
+  const ss = SpreadsheetApp.openById(SS_ID);
+  const kidsSheet = ss.getSheetByName('KidsData');
+  kidsSheet.getRange('A2:H10').getValues()
+    .forEach((r, i) => { if (r[0]) kidsSheet.getRange(i + 2, 5).setValue(0); });
+  const configSheet = ss.getSheetByName('Config');
+  const data = configSheet.getRange('A2:B20').getValues();
+  const rowIdx = data.findIndex(r => r[0] === 'last_strike_reset');
+  if (rowIdx >= 0) configSheet.getRange(rowIdx + 2, 2).setValue(new Date().toISOString());
+}
+
+// ── Run this ONCE from the Apps Script editor (select it in the function
+// dropdown and click Run) to install the automatic weekly reset. Without
+// this, strikes only reset if someone happens to open the app on a Monday.
+function setupWeeklyStrikeReset() {
+  ScriptApp.getProjectTriggers().forEach(t => {
+    if (t.getHandlerFunction() === 'resetAllStrikes_') ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger('resetAllStrikes_').timeBased().onWeekDay(ScriptApp.WeekDay.MONDAY).atHour(0).create();
+  return { success: true, message: 'Weekly strike reset trigger installed — runs every Monday around midnight.' };
 }

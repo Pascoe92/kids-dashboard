@@ -633,7 +633,7 @@ function goPage(name) {
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.toggle('active',t.dataset.page===name));
   document.getElementById('page-'+name).classList.add('active');
   activePage=name;
-  if(name==='kids'){ if(S.kids.length) renderKidsApp(); else loadAll(); }
+  if(name==='kids'){ if(S.kids.length){ renderKidsApp(); loadAll(true); } else loadAll(); }
   if(name==='home') refreshHome();
   if(name==='meals') renderMealGrid();
   if(name==='shopping') loadShopList();
@@ -681,7 +681,7 @@ function api(params){
 // ═══════════════════════════════════════════════════
 function refreshHome(){
   if(S.kids.length) renderHomeKids();
-  else api({action:'getData'}).then(d=>{S=d;renderHomeKids();}).catch(()=>{});
+  api({action:'getData'}).then(d=>{S=d;renderHomeKids();}).catch(()=>{});
   // Refresh activity feed
   api({action:'getActivity'}).then(r=>{
     const list=document.getElementById('homeActivity');
@@ -731,15 +731,15 @@ function renderHomeKids(){
 // ═══════════════════════════════════════════════════
 // KIDS DASHBOARD
 // ═══════════════════════════════════════════════════
-async function loadAll(){
-  document.getElementById('kidsGrid').innerHTML='<div id="loading" style="grid-column:1/-1;text-align:center;padding:40px"><span class="spin">⭐</span> Loading…</div>';
+async function loadAll(silent){
+  if(!silent) document.getElementById('kidsGrid').innerHTML='<div id="loading" style="grid-column:1/-1;text-align:center;padding:40px"><span class="spin">⭐</span> Loading…</div>';
   try{
     const data=await api({action:'getData'});
     if(!data.success) throw new Error(data.error||'API error');
     S=data;
     renderKidsApp();
   }catch(e){
-    document.getElementById('kidsGrid').innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--muted)">⚠️ ${e.message}<br><br><button class="btn btn-gold" onclick="loadAll()">Try Again</button></div>`;
+    if(!silent) document.getElementById('kidsGrid').innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--muted)">⚠️ ${e.message}<br><br><button class="btn btn-gold" onclick="loadAll()">Try Again</button></div>`;
   }
 }
 
