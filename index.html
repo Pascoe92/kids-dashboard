@@ -336,13 +336,6 @@ main{max-width:960px;margin:0 auto;padding:14px 14px 20px}
 .modal{background:#16082e;border:1px solid rgba(255,255,255,.12);border-radius:24px;padding:26px;width:100%;max-width:360px;text-align:center}
 .modal h3{font-size:1.1rem;margin-bottom:6px}
 .modal p{color:var(--muted);font-size:.83rem;margin-bottom:18px;line-height:1.5}
-.pin-dots{font-size:2rem;letter-spacing:10px;color:var(--gold);min-height:1.5em;margin-bottom:16px}
-.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.nk{padding:14px;border-radius:13px;border:1px solid var(--border);background:rgba(255,255,255,.06);color:var(--text);font-size:1.2rem;font-weight:700;cursor:pointer;transition:all .15s;font-family:inherit}
-.nk:hover{background:rgba(255,255,255,.14)}
-.nk:active{transform:scale(.9)}
-.nk.del{font-size:.9rem;color:var(--muted)}
-.pin-err{color:var(--red);font-size:.8rem;margin-top:10px;min-height:1.2em}
 .kid-btns{display:flex;gap:10px;margin-bottom:14px}
 .kid-pick{flex:1;padding:12px;border-radius:13px;border:2px solid var(--border);background:rgba(255,255,255,.05);color:var(--text);font-size:.9rem;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s}
 .kid-pick.sel{border-color:var(--gold);background:rgba(255,215,0,.1)}
@@ -417,15 +410,15 @@ footer{text-align:center;padding:16px;font-size:.68rem;color:rgba(255,255,255,.1
           <div class="sec-title" style="margin:0">🔐 Parent Zone</div>
         </div>
         <div id="parentLock" style="text-align:center;padding:8px 0">
-          <p style="color:var(--muted);font-size:.83rem;margin-bottom:12px">Enter PIN to manage strikes &amp; bonuses</p>
-          <button id="unlockBtn" onclick="requirePin(openParentControls)">🔓 Unlock Parent Zone</button>
+          <p style="color:var(--muted);font-size:.83rem;margin-bottom:12px">Manage strikes &amp; bonuses</p>
+          <button id="unlockBtn" onclick="openParentControls()">🔓 Open Parent Zone</button>
         </div>
         <div id="parentCtrls" style="display:none">
           <div class="parent-grid">
+            <button class="pbtn pbtn-bonus"  onclick="openAction('bonus')">⭐ Award Bonus</button>
             <button class="pbtn pbtn-strike" onclick="openAction('strike')">⚡ Add Strike</button>
             <button class="pbtn pbtn-undo"   onclick="openAction('removeStrike')">↩️ Remove Strike</button>
-            <button class="pbtn pbtn-bonus"  onclick="openAction('bonus')">⭐ Award Bonus</button>
-            <button class="pbtn pbtn-lock"   onclick="lockParent()">🔒 Lock</button>
+            <button class="pbtn pbtn-lock"   onclick="lockParent()">🔒 Close</button>
           </div>
         </div>
       </div>
@@ -563,22 +556,6 @@ footer{text-align:center;padding:16px;font-size:.68rem;color:rgba(255,255,255,.1
 <!-- CELEBRATE -->
 <div id="celebrate"><div class="cel-inner"><span class="cel-emo" id="celEmo">🎉</span><div class="cel-txt" id="celTxt">Amazing!</div></div></div>
 
-<!-- PIN MODAL -->
-<div class="overlay" id="pinOverlay">
-  <div class="modal">
-    <h3>🔐 Parent Zone</h3><p>Enter your 4-digit PIN</p>
-    <div class="pin-dots" id="pinDots">_ _ _ _</div>
-    <div class="numpad">
-      <button class="nk" onclick="pk('1')">1</button><button class="nk" onclick="pk('2')">2</button><button class="nk" onclick="pk('3')">3</button>
-      <button class="nk" onclick="pk('4')">4</button><button class="nk" onclick="pk('5')">5</button><button class="nk" onclick="pk('6')">6</button>
-      <button class="nk" onclick="pk('7')">7</button><button class="nk" onclick="pk('8')">8</button><button class="nk" onclick="pk('9')">9</button>
-      <button class="nk del" onclick="pk('del')">⌫</button><button class="nk" onclick="pk('0')">0</button><button class="nk" onclick="pk('ok')">✓</button>
-    </div>
-    <div class="pin-err" id="pinErr"></div>
-    <button class="modal-cancel" onclick="closePin()" style="margin-top:12px">Cancel</button>
-  </div>
-</div>
-
 <!-- ACTION MODAL -->
 <div class="overlay" id="actionOverlay">
   <div class="modal">
@@ -640,7 +617,6 @@ function avatarHTML(kid){
   return `<span class="avatar-photo-wrap"><img class="avatar-photo" src="avatars/${kid.name.toLowerCase()}.png" alt="${kid.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="avatar-emoji">${kid.avatar}</span></span>`;
 }
 let activePage='home';
-let pinBuf='',pinCb=null;
 let curAction=null,selKid=null,selRedKid=null,curReward=null;
 let currentWeekStart=getMonday(new Date());
 let mealData={};
@@ -932,22 +908,6 @@ function showModal(html){
 }
 function closeModal(){document.getElementById('genericOverlay').classList.remove('show');}
 
-function requirePin(cb){pinCb=cb;pinBuf='';document.getElementById('pinDots').textContent='_ _ _ _';document.getElementById('pinErr').textContent='';document.getElementById('pinOverlay').classList.add('show');}
-function closePin(){document.getElementById('pinOverlay').classList.remove('show');pinCb=null;}
-
-function verifyPin(entered){return entered===String(S.config.pin_key||'1234');}
-
-function pk(k){
-  if(k==='del'){pinBuf=pinBuf.slice(0,-1);}
-  else if(k==='ok'){
-    if(verifyPin(pinBuf)){const cb=pinCb;closePin();if(cb)cb();}
-    else{document.getElementById('pinErr').textContent='❌ Wrong PIN — try again';pinBuf='';}
-    updatePinDisplay();return;
-  }else if(pinBuf.length<4){pinBuf+=k;}
-  updatePinDisplay();
-  if(pinBuf.length===4) setTimeout(()=>pk('ok'),150);
-}
-function updatePinDisplay(){const f=pinBuf.split('').map(()=>'●').join(' ');const e=Array(4-pinBuf.length).fill('_').join(' ');document.getElementById('pinDots').textContent=[f,e].filter(Boolean).join(' ')||'_ _ _ _';}
 function openParentControls(){const l=document.getElementById('parentLock');const c=document.getElementById('parentCtrls');if(l)l.style.display='none';if(c){c.style.display='block';}}
 function lockParent(){const l=document.getElementById('parentLock');const c=document.getElementById('parentCtrls');if(l)l.style.display='block';if(c)c.style.display='none';}
 
