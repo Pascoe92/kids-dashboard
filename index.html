@@ -194,7 +194,7 @@ main{max-width:960px;margin:0 auto;padding:14px 14px 20px}
 .chore-period-lbl{display:flex;align-items:center;gap:8px;font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:7px}
 .chore-period-lbl::after{content:'';flex:1;height:1px;background:var(--border)}
 .chores-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.chore-btn{position:relative;overflow:hidden;display:flex;align-items:center;flex-wrap:wrap;gap:6px;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:12px;padding:9px 8px;cursor:pointer;color:var(--text);font-family:inherit;font-size:.74rem;text-align:left;transition:all .18s;user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent}
+.chore-btn{position:relative;overflow:hidden;display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:12px;padding:9px 8px;cursor:pointer;color:var(--text);font-family:inherit;font-size:.74rem;text-align:left;transition:all .18s;user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent}
 .chore-btn>span{position:relative;z-index:1}
 .chore-btn:hover:not(.done){background:rgba(255,255,255,.12);transform:scale(1.02)}
 .chore-btn:active:not(.done){transform:scale(.95)}
@@ -202,7 +202,6 @@ main{max-width:960px;margin:0 auto;padding:14px 14px 20px}
 .chore-btn.done:hover{background:rgba(255,80,80,.08);border-color:rgba(255,80,80,.28)}
 .chore-btn .hold-fill{position:absolute;inset:0;width:0%;background:rgba(239,83,80,.4);transition:width 0s linear;z-index:0}
 .chore-btn.charging .hold-fill{width:100%;transition:width .6s linear}
-.undo-hint{flex-basis:100%;font-size:.6rem;color:#ff8a80;opacity:.75}
 .chore-ico{font-size:1.1rem;flex-shrink:0}
 .rewards-lbl{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:14px;margin-bottom:6px}
 .rewards-scroll{display:flex;gap:9px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
@@ -806,7 +805,7 @@ function renderKid(kid){
       onclick="onChoreClick('${kid.name}','${sc}',this)"
       onpointerdown="onChoreHoldStart('${kid.name}','${sc}',this)" onpointerup="onChoreHoldEnd(this)"
       onpointerleave="onChoreHoldEnd(this)" onpointercancel="onChoreHoldEnd(this)">
-      <div class="hold-fill"></div><span class="chore-ico">${done?'✅':c.emoji}</span><span>${c.name}</span>${done?'<span class="undo-hint">↩ hold to undo</span>':''}
+      <div class="hold-fill"></div><span class="chore-ico">${done?'✅':c.emoji}</span><span>${c.name}</span>
     </button>`;
   };
   const periodNames=CHORE_PERIODS.map(p=>p[0]);
@@ -878,7 +877,7 @@ async function loadActivity(){
 // ── CHORES ──
 async function doChore(kidName,choreName,btn){
   btn.classList.add('done');
-  btn.innerHTML=`<div class="hold-fill"></div><span class="chore-ico">✅</span><span>${choreName}</span><span class="undo-hint">↩ hold to undo</span>`;
+  btn.innerHTML=`<div class="hold-fill"></div><span class="chore-ico">✅</span><span>${choreName}</span>`;
   S.completedToday[`${kidName}|${choreName}`]=true;
   confettiBurst(10);
   spawnPop(`+${parseInt(S.config.points_per_chore)||10}⭐`,btn);
@@ -917,10 +916,10 @@ async function undoChore(kidName,choreName,btn){
       if(countEl) countEl.textContent=`${doneNow}/${kidChores.length}`;
     } else {
       btn.classList.add('done');
-      btn.innerHTML=`<div class="hold-fill"></div><span class="chore-ico">✅</span><span>${choreName}</span><span class="undo-hint">↩ hold to undo</span>`;
+      btn.innerHTML=`<div class="hold-fill"></div><span class="chore-ico">✅</span><span>${choreName}</span>`;
       S.completedToday[`${kidName}|${choreName}`]=true;
     }
-  }catch(e){btn.classList.add('done');btn.innerHTML=`<div class="hold-fill"></div><span class="chore-ico">✅</span><span>${choreName}</span><span class="undo-hint">↩ hold to undo</span>`;S.completedToday[`${kidName}|${choreName}`]=true;}
+  }catch(e){btn.classList.add('done');btn.innerHTML=`<div class="hold-fill"></div><span class="chore-ico">✅</span><span>${choreName}</span>`;S.completedToday[`${kidName}|${choreName}`]=true;}
 }
 
 function refreshStats(name,pts,streak){
