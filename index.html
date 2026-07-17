@@ -96,10 +96,17 @@ main{max-width:960px;margin:0 auto;padding:14px 14px 20px}
 .home-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
 @media(max-width:480px){.home-grid{grid-template-columns:1fr}}
 .home-kid-card{
-  border-radius:var(--radius);padding:16px;cursor:pointer;transition:transform .2s;
+  position:relative;overflow:hidden;
+  border-radius:var(--radius);padding:16px;cursor:pointer;transition:transform .2s,box-shadow .3s;
   border:1px solid var(--border);
+  touch-action:pan-y;-webkit-tap-highlight-color:transparent;
 }
 .home-kid-card:hover{transform:translateY(-3px)}
+.home-kid-card>*{position:relative;z-index:1}
+.home-kid-card .hold-fill{position:absolute;inset:0;width:0%;background:linear-gradient(90deg,rgba(255,215,0,.4),rgba(255,160,0,.5));transition:width 0s linear;z-index:0}
+.home-kid-card.charging{box-shadow:0 0 0 3px rgba(255,215,0,.6),0 0 18px rgba(255,215,0,.4)}
+.home-kid-card.charging .hold-fill{width:100%;transition:width 1.2s linear}
+.hold-hint{font-size:.6rem;color:var(--muted);text-align:center;margin-top:6px;opacity:.7}
 .home-kid-card.myles{background:linear-gradient(135deg,rgba(79,195,247,.15),rgba(2,136,209,.08));border-top:3px solid var(--myles)}
 .home-kid-card.finley{background:linear-gradient(135deg,rgba(129,199,132,.15),rgba(46,125,50,.08));border-top:3px solid var(--finley)}
 .hk-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
@@ -177,6 +184,10 @@ main{max-width:960px;margin:0 auto;padding:14px 14px 20px}
 .strike-hold-btn .hold-fill{position:absolute;inset:0;width:0%;background:linear-gradient(135deg,#EF5350,#B71C1C);transition:width 0s linear}
 .strike-hold-btn.charging .hold-fill{width:100%;transition:width 3s linear}
 .strike-hold-btn span{position:relative;z-index:1}
+.bonus-hold-btn{position:relative;overflow:hidden;width:100%;margin-bottom:15px;padding:10px;border:1px solid rgba(255,215,0,.4);border-radius:11px;background:rgba(255,215,0,.1);color:var(--gold);font-family:inherit;font-size:.72rem;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;touch-action:none}
+.bonus-hold-btn .hold-fill{position:absolute;inset:0;width:0%;background:linear-gradient(135deg,var(--gold),#FFA000);transition:width 0s linear}
+.bonus-hold-btn.charging .hold-fill{width:100%;transition:width 1.2s linear}
+.bonus-hold-btn span{position:relative;z-index:1}
 .chores-lbl{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
 .chore-period{margin-bottom:12px}
 .chore-period:last-child{margin-bottom:0}
@@ -329,6 +340,7 @@ main{max-width:960px;margin:0 auto;padding:14px 14px 20px}
 .act-chore{flex:1;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .act-pts{font-weight:700;color:var(--gold);flex-shrink:0}
 .act-date{font-size:.66rem;color:rgba(255,255,255,.28);flex-shrink:0}
+.act-item.bonus-item{background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.28)}
 
 /* ── MODALS ── */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.78);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:500;padding:16px}
@@ -399,6 +411,8 @@ footer{text-align:center;padding:16px;font-size:.68rem;color:rgba(255,255,255,.1
       <div class="today-card" onclick="goPage('meals')"><div class="today-ico">🍽️</div><div class="today-val" id="glanceMeal">—</div><div class="today-lbl">Tonight's Dinner</div></div>
       <div class="today-card" onclick="goPage('shopping')"><div class="today-ico">🛒</div><div class="today-val" id="glanceShop">—</div><div class="today-lbl">To Buy</div></div>
     </div>
+    <div class="sec-title">🌟 Recent Recognitions</div>
+    <div class="activity-list" id="homeBonuses"><div style="color:var(--muted);font-size:.82rem;text-align:center;padding:10px">Loading…</div></div>
     <div class="sec-title">Recent Activity</div>
     <div class="activity-list" id="homeActivity"><div style="color:var(--muted);font-size:.82rem;text-align:center;padding:10px">Loading…</div></div>
     <footer>🌟 Keep up the amazing work, Pascoe family! 🌟</footer>
@@ -674,9 +688,10 @@ tick(); setInterval(tick,30000);
 // ═══════════════════════════════════════════════════
 // API (JSONP)
 // ═══════════════════════════════════════════════════
+let apiCallSeq=0;
 function api(params){
   return new Promise((resolve,reject)=>{
-    const cb='_kd'+Date.now();
+    const cb='_kd'+Date.now()+'_'+(apiCallSeq++);
     params.callback=cb;
     const url=API+'?'+new URLSearchParams(params);
     const s=document.createElement('script');
@@ -701,6 +716,13 @@ function refreshHome(){
     if(!r.activity?.length){list.innerHTML='<div style="color:var(--muted);font-size:.82rem;text-align:center;padding:10px">No activity yet today!</div>';return;}
     list.innerHTML=r.activity.slice(0,5).map(a=>`<div class="act-item"><span class="act-kid ${a.kid}">${a.kid}</span><span class="act-chore">${a.chore}</span><span class="act-pts">${a.points>0?'+':''}${a.points}⭐</span><span class="act-date">${a.date}</span></div>`).join('');
   }).catch(()=>{});
+  // Refresh recent recognitions (bonuses only)
+  api({action:'getRecentBonuses',limit:8}).then(r=>{
+    const list=document.getElementById('homeBonuses');
+    if(!list) return;
+    if(!r.bonuses?.length){list.innerHTML='<div style="color:var(--muted);font-size:.82rem;text-align:center;padding:10px">No recognitions yet — go give someone a bonus! ⭐</div>';return;}
+    list.innerHTML=r.bonuses.map(b=>`<div class="act-item bonus-item"><span class="act-kid ${b.kid}">${b.kid}</span><span class="act-chore">${b.reason}</span><span class="act-pts">+${b.points}⭐</span><span class="act-date">${b.date}</span></div>`).join('');
+  }).catch(()=>{});
   // Update glance stats from cached data
   const todayIdx=new Date().getDay()===0?6:new Date().getDay()-1;
   const dinner=mealData[todayIdx+'_dinner']||'—';
@@ -723,7 +745,11 @@ function renderHomeKids(){
     const cls=kid.name.toLowerCase();
     const kidChores=S.chores.filter(c=>(c.kids==='Both'||c.kids===kid.name)&&choreAppliesToday(c));
     const done=kidChores.filter(c=>S.completedToday[`${kid.name}|${c.name}`]).length;
-    return `<div class="home-kid-card ${cls}" onclick="goPage('kids')">
+    return `<div class="home-kid-card ${cls}"
+      onclick="onHomeKidClick(this)"
+      onpointerdown="startBonusHold('${kid.name}',this)" onpointerup="endBonusHold(this)"
+      onpointerleave="endBonusHold(this)" onpointercancel="endBonusHold(this)">
+      <div class="hold-fill"></div>
       <div class="hk-top"><div class="hk-avatar">${avatarHTML(kid)}</div><div class="hk-mood">${mood}</div></div>
       <div class="hk-name">${kid.name}</div>
       <div style="display:flex;align-items:baseline;gap:6px;margin-top:6px">
@@ -732,6 +758,7 @@ function renderHomeKids(){
       </div>
       <div class="hk-bar ${pct>=85?'near':''}"><div class="hk-bar-fill" style="width:${pct}%"></div></div>
       <div style="font-size:.68rem;color:var(--muted);margin-top:5px">⚡ ${kid.strikes}/${lim} strikes this week</div>
+      <div class="hold-hint">🌟 hold to give a bonus</div>
     </div>`;
   }).join('');
   const totDone=S.kids.reduce((a,k)=>{const kc=S.chores.filter(c=>c.kids==='Both'||c.kids===k.name);return a+kc.filter(c=>S.completedToday[`${k.name}|${c.name}`]).length;},0);
@@ -808,6 +835,11 @@ function renderKid(kid){
       <div class="chip streak"><div class="chip-val" id="streak-${kid.name}">🔥 ${kid.streak}</div><div class="chip-lbl">Streak</div></div>
       <div class="chip"><div class="chip-val" id="chores-${kid.name}">${doneCount}/${kidChores.length}</div><div class="chip-lbl">Chores</div></div>
     </div>
+    <button class="bonus-hold-btn" id="holdBonus-${kid.name}"
+      onpointerdown="startBonusHold('${kid.name}',this)" onpointerup="endBonusHold(this)"
+      onpointerleave="endBonusHold(this)" onpointercancel="endBonusHold(this)">
+      <div class="hold-fill"></div><span>🌟 Hold to give a bonus</span>
+    </button>
     <div class="prog-wrap">
       <div class="prog-meta"><span>Next reward</span><span>${kid.points} pts</span></div>
       <div class="prog-bar ${pct>=85?'near':''}" id="progBar-${kid.name}">
@@ -980,6 +1012,22 @@ function onChoreHoldStart(kidName,choreName,btn){
   });
 }
 function onChoreHoldEnd(btn){ endHold(btn); }
+
+// ── QUICK RECOGNITION (hold a kid's card to award a bonus, no Parent Zone) ──
+const BONUS_HOLD_MS=1200;
+function startBonusHold(kidName,btn){
+  beginHold(btn,BONUS_HOLD_MS,()=>{
+    if(navigator.vibrate) navigator.vibrate(60);
+    btn.dataset.justHeld='1';
+    openAction('bonus');
+    pickKid(kidName);
+  });
+}
+function endBonusHold(btn){ endHold(btn); }
+function onHomeKidClick(el){
+  if(el.dataset.justHeld){delete el.dataset.justHeld;return;}
+  goPage('kids');
+}
 function pickKid(n){selKid=n;document.getElementById('pickMyles').classList.toggle('sel',n==='Myles');document.getElementById('pickFinley').classList.toggle('sel',n==='Finley');}
 function pickPoints(n){selPoints=n;document.querySelectorAll('.pts-pick').forEach(b=>b.classList.toggle('sel',parseInt(b.textContent)===n));}
 function closeAction(){document.getElementById('actionOverlay').classList.remove('show');curAction=selKid=null;selPoints=null;}

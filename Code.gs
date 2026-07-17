@@ -31,6 +31,7 @@ function handleRequest(e) {
       case 'redeemReward': return redeemReward(p.kid, dec(p.reward), parseInt(p.cost));
       case 'checkPin':     return checkPin(p.pin);
       case 'getActivity':       return { activity: getRecentActivity() };
+      case 'getRecentBonuses':  return { bonuses: getRecentBonuses(parseInt(p.limit) || 8) };
       case 'initSheets':        return initializeSheets();
       // Calendar
       case 'getCalendarList': return getCalendarList();
@@ -321,6 +322,24 @@ function getRecentActivity() {
     .map(r => ({
       date: Utilities.formatDate(new Date(r[0]), Session.getScriptTimeZone(), 'dd MMM HH:mm'),
       kid: r[1], chore: r[2], points: r[3]
+    }));
+}
+
+// Bonus-only feed, scanning the whole log (not just the tail window
+// getRecentActivity uses) since bonuses are rare and would otherwise get
+// crowded out by ordinary chore check-offs.
+function getRecentBonuses(limit) {
+  limit = limit || 8;
+  const ss = SpreadsheetApp.openById(SS_ID);
+  const sheet = ss.getSheetByName('ChoresLog');
+  const last = sheet.getLastRow();
+  if (last <= 1) return [];
+  return sheet.getRange('A2:E' + last).getValues()
+    .filter(r => r[0] && r[4] === 'Bonus')
+    .slice(-limit).reverse()
+    .map(r => ({
+      date: Utilities.formatDate(new Date(r[0]), Session.getScriptTimeZone(), 'dd MMM HH:mm'),
+      kid: r[1], reason: String(r[2]).replace(/^⭐ BONUS: /, ''), points: r[3]
     }));
 }
 
