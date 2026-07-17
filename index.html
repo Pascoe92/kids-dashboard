@@ -110,10 +110,11 @@ main{max-width:960px;margin:0 auto;padding:14px 14px 20px}
 .hk-name{font-size:1.1rem;font-weight:800}
 .hk-pts{font-size:1.5rem;font-weight:900;color:var(--gold)}
 .hk-pts-lbl{font-size:.65rem;color:var(--muted)}
-.hk-bar{height:5px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;margin-top:8px}
-.hk-bar-fill{height:100%;border-radius:3px;transition:width .6s}
-.myles .hk-bar-fill{background:var(--myles)}
-.finley .hk-bar-fill{background:var(--finley)}
+.hk-bar{height:9px;background:rgba(255,255,255,.08);border-radius:5px;overflow:hidden;margin-top:8px;box-shadow:inset 0 1px 3px rgba(0,0,0,.3);transition:box-shadow .4s}
+.hk-bar.near{box-shadow:inset 0 1px 3px rgba(0,0,0,.3),0 0 10px rgba(255,215,0,.55)}
+.hk-bar-fill{height:100%;border-radius:5px;transition:width .8s cubic-bezier(.34,1.56,.64,1)}
+.myles .hk-bar-fill{background:linear-gradient(90deg,var(--myles-dk),var(--myles))}
+.finley .hk-bar-fill{background:linear-gradient(90deg,var(--finley-dk),var(--finley))}
 .home-today-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
 @media(max-width:400px){.home-today-grid{grid-template-columns:1fr 1fr}}
 .today-card{
@@ -150,13 +151,20 @@ main{max-width:960px;margin:0 auto;padding:14px 14px 20px}
 .chip-lbl{font-size:.58rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
 .chip.pts .chip-val{color:var(--gold)}
 .chip.streak .chip-val{color:var(--orange)}
-.prog-wrap{margin-bottom:13px}
-.prog-meta{display:flex;justify-content:space-between;font-size:.68rem;color:var(--muted);margin-bottom:5px}
-.prog-bar{height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden}
-.prog-fill{height:100%;border-radius:3px;transition:width .7s cubic-bezier(.4,0,.2,1)}
-.myles .prog-fill{background:linear-gradient(90deg,var(--myles-dk),var(--myles))}
-.finley .prog-fill{background:linear-gradient(90deg,var(--finley-dk),var(--finley))}
-.prog-next{font-size:.66rem;color:var(--muted);margin-top:3px}
+.prog-wrap{margin-bottom:15px}
+.prog-meta{display:flex;justify-content:space-between;font-size:.68rem;color:var(--muted);margin-bottom:6px}
+.prog-bar{position:relative;height:18px;background:rgba(255,255,255,.08);border-radius:10px;overflow:visible;box-shadow:inset 0 2px 5px rgba(0,0,0,.3);transition:box-shadow .4s}
+.prog-bar.near{box-shadow:inset 0 2px 5px rgba(0,0,0,.3),0 0 14px rgba(255,215,0,.6)}
+.prog-bar-inner{position:relative;width:100%;height:100%;border-radius:10px;overflow:hidden}
+.prog-fill{position:relative;height:100%;border-radius:10px;transition:width .8s cubic-bezier(.34,1.56,.64,1);background-size:24px 24px;animation:progStripe 1s linear infinite}
+.myles .prog-fill{background-image:linear-gradient(90deg,var(--myles-dk),var(--myles)),repeating-linear-gradient(45deg,rgba(255,255,255,.2) 0 6px,transparent 6px 12px)}
+.finley .prog-fill{background-image:linear-gradient(90deg,var(--finley-dk),var(--finley)),repeating-linear-gradient(45deg,rgba(255,255,255,.2) 0 6px,transparent 6px 12px)}
+@keyframes progStripe{from{background-position:0 0,0 0}to{background-position:0 0,24px 0}}
+.prog-star{position:absolute;top:50%;left:0;transform:translate(-50%,-50%);font-size:1.15rem;filter:drop-shadow(0 0 3px rgba(255,215,0,.85));animation:floatStar 1.5s ease-in-out infinite;pointer-events:none;transition:left .8s cubic-bezier(.34,1.56,.64,1)}
+@keyframes floatStar{0%,100%{transform:translate(-50%,-50%) rotate(-8deg)}50%{transform:translate(-50%,-62%) rotate(8deg)}}
+.prog-next{font-size:.7rem;color:var(--muted);margin-top:6px;font-weight:600}
+.prog-next.near{color:var(--gold);animation:glowPulse 1s ease-in-out infinite}
+@keyframes glowPulse{0%,100%{opacity:1}50%{opacity:.55}}
 .strikes-wrap{margin-bottom:14px}
 .strikes-lbl{font-size:.75rem;font-weight:700;color:var(--red);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
 .dots{display:flex;gap:7px;flex-wrap:wrap}
@@ -175,13 +183,15 @@ main{max-width:960px;margin:0 auto;padding:14px 14px 20px}
 .chore-period-lbl{display:flex;align-items:center;gap:8px;font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:7px}
 .chore-period-lbl::after{content:'';flex:1;height:1px;background:var(--border)}
 .chores-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.chore-btn{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:12px;padding:9px 8px;cursor:pointer;color:var(--text);font-family:inherit;font-size:.74rem;text-align:left;transition:all .18s;user-select:none}
+.chore-btn{position:relative;overflow:hidden;display:flex;align-items:center;flex-wrap:wrap;gap:6px;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:12px;padding:9px 8px;cursor:pointer;color:var(--text);font-family:inherit;font-size:.74rem;text-align:left;transition:all .18s;user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent}
+.chore-btn>span{position:relative;z-index:1}
 .chore-btn:hover:not(.done){background:rgba(255,255,255,.12);transform:scale(1.02)}
 .chore-btn:active:not(.done){transform:scale(.95)}
 .chore-btn.done{background:rgba(80,200,80,.07);border-color:rgba(80,200,80,.25);color:rgba(255,255,255,.45);cursor:pointer}
 .chore-btn.done:hover{background:rgba(255,80,80,.08);border-color:rgba(255,80,80,.28)}
-.chore-btn.done:hover .undo-hint{display:inline}
-.undo-hint{display:none;font-size:.62rem;color:#ff8a80;margin-left:2px}
+.chore-btn .hold-fill{position:absolute;inset:0;width:0%;background:rgba(239,83,80,.4);transition:width 0s linear;z-index:0}
+.chore-btn.charging .hold-fill{width:100%;transition:width .6s linear}
+.undo-hint{flex-basis:100%;font-size:.6rem;color:#ff8a80;opacity:.75}
 .chore-ico{font-size:1.1rem;flex-shrink:0}
 .rewards-lbl{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:14px;margin-bottom:6px}
 .rewards-scroll{display:flex;gap:9px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
@@ -732,7 +742,7 @@ function renderHomeKids(){
         <div class="hk-pts">⭐ ${kid.points}</div>
         <div class="hk-pts-lbl">points · ${done}/${kidChores.length} chores</div>
       </div>
-      <div class="hk-bar"><div class="hk-bar-fill" style="width:${pct}%"></div></div>
+      <div class="hk-bar ${pct>=85?'near':''}"><div class="hk-bar-fill" style="width:${pct}%"></div></div>
       <div style="font-size:.68rem;color:var(--muted);margin-top:5px">⚡ ${kid.strikes}/${lim} strikes this week</div>
     </div>`;
   }).join('');
@@ -777,8 +787,12 @@ function renderKid(kid){
   const renderChoreBtn=c=>{
     const done=S.completedToday[`${kid.name}|${c.name}`];
     const sc=c.name.replace(/'/g,"\\'");
-    const onclick=done?`onclick="undoChore('${kid.name}','${sc}',this)"`:`onclick="doChore('${kid.name}','${sc}',this)"`;
-    return `<button class="chore-btn ${done?'done':''}" ${onclick}><span class="chore-ico">${done?'✅':c.emoji}</span><span>${c.name}</span>${done?'<span class="undo-hint">↩ undo</span>':''}</button>`;
+    return `<button class="chore-btn ${done?'done':''}"
+      onclick="onChoreClick('${kid.name}','${sc}',this)"
+      onpointerdown="onChoreHoldStart('${kid.name}','${sc}',this)" onpointerup="onChoreHoldEnd(this)"
+      onpointerleave="onChoreHoldEnd(this)" onpointercancel="onChoreHoldEnd(this)">
+      <div class="hold-fill"></div><span class="chore-ico">${done?'✅':c.emoji}</span><span>${c.name}</span>${done?'<span class="undo-hint">↩ hold to undo</span>':''}
+    </button>`;
   };
   const periodNames=CHORE_PERIODS.map(p=>p[0]);
   const otherChores=kidChores.filter(c=>!periodNames.includes(c.period));
@@ -808,8 +822,11 @@ function renderKid(kid){
     </div>
     <div class="prog-wrap">
       <div class="prog-meta"><span>Next reward</span><span>${kid.points} pts</span></div>
-      <div class="prog-bar"><div class="prog-fill" id="prog-${kid.name}" style="width:${pct}%"></div></div>
-      <div class="prog-next">${nextLabel}</div>
+      <div class="prog-bar ${pct>=85?'near':''}" id="progBar-${kid.name}">
+        <div class="prog-bar-inner"><div class="prog-fill" id="prog-${kid.name}" style="width:${pct}%"></div></div>
+        <span class="prog-star" id="progStar-${kid.name}" style="left:${pct}%">⭐</span>
+      </div>
+      <div class="prog-next ${pct>=85?'near':''}">${nextLabel}</div>
     </div>
     <div class="strikes-wrap">
       <div class="strikes-lbl">⚡ Strikes this week (${kid.strikes}/${lim})</div>
@@ -840,9 +857,8 @@ async function loadActivity(){
 
 // ── CHORES ──
 async function doChore(kidName,choreName,btn){
-  btn.disabled=true;btn.classList.add('done');
-  btn.innerHTML=`<span class="chore-ico">✅</span><span>${choreName}</span><span class="undo-hint">↩ undo</span>`;
-  btn.onclick=function(){undoChore(kidName,choreName,btn);};
+  btn.classList.add('done');
+  btn.innerHTML=`<div class="hold-fill"></div><span class="chore-ico">✅</span><span>${choreName}</span><span class="undo-hint">↩ hold to undo</span>`;
   S.completedToday[`${kidName}|${choreName}`]=true;
   confettiBurst(10);
   spawnPop(`+${parseInt(S.config.points_per_chore)||10}⭐`,btn);
@@ -864,15 +880,13 @@ async function doChore(kidName,choreName,btn){
 
 async function undoChore(kidName,choreName,btn){
   btn.classList.remove('done');
-  btn.innerHTML=`<span class="chore-ico">⏳</span><span>${choreName}</span>`;
+  btn.innerHTML=`<div class="hold-fill"></div><span class="chore-ico">⏳</span><span>${choreName}</span>`;
   delete S.completedToday[`${kidName}|${choreName}`];
   try{
     const res=await api({action:'undoChore',kid:kidName,chore:encodeURIComponent(choreName)});
     if(res.success){
       const emoji=S.chores.find(c=>c.name===choreName)?.emoji||'✔️';
-      btn.innerHTML=`<span class="chore-ico">${emoji}</span><span>${choreName}</span>`;
-      btn.classList.remove('done');
-      btn.onclick=function(){doChore(kidName,choreName,btn);};
+      btn.innerHTML=`<div class="hold-fill"></div><span class="chore-ico">${emoji}</span><span>${choreName}</span>`;
       const kid=S.kids.find(k=>k.name===kidName);
       if(kid) kid.points=res.newTotal;
       refreshStats(kidName,res.newTotal,S.kids.find(k=>k.name===kidName)?.streak||0);
@@ -883,10 +897,10 @@ async function undoChore(kidName,choreName,btn){
       if(countEl) countEl.textContent=`${doneNow}/${kidChores.length}`;
     } else {
       btn.classList.add('done');
-      btn.innerHTML=`<span class="chore-ico">✅</span><span>${choreName}</span><span class="undo-hint">↩ undo</span>`;
+      btn.innerHTML=`<div class="hold-fill"></div><span class="chore-ico">✅</span><span>${choreName}</span><span class="undo-hint">↩ hold to undo</span>`;
       S.completedToday[`${kidName}|${choreName}`]=true;
     }
-  }catch(e){btn.classList.add('done');btn.innerHTML=`<span class="chore-ico">✅</span><span>${choreName}</span><span class="undo-hint">↩ undo</span>`;S.completedToday[`${kidName}|${choreName}`]=true;}
+  }catch(e){btn.classList.add('done');btn.innerHTML=`<div class="hold-fill"></div><span class="chore-ico">✅</span><span>${choreName}</span><span class="undo-hint">↩ hold to undo</span>`;S.completedToday[`${kidName}|${choreName}`]=true;}
 }
 
 function refreshStats(name,pts,streak){
@@ -899,6 +913,11 @@ function refreshStats(name,pts,streak){
   const pct=next?Math.min(100,(pts-prev)/(next.cost-prev)*100):100;
   const fill=document.getElementById(`prog-${name}`);
   if(fill) fill.style.width=pct+'%';
+  const star=document.getElementById(`progStar-${name}`);
+  if(star) star.style.left=pct+'%';
+  const near=pct>=85;
+  document.getElementById(`progBar-${name}`)?.classList.toggle('near',near);
+  fill?.closest('.prog-wrap')?.querySelector('.prog-next')?.classList.toggle('near',near);
 }
 
 function checkMilestone(name,pts,streak){
@@ -945,24 +964,49 @@ function openAction(type){
   document.getElementById('actionOverlay').classList.add('show');
 }
 
-// ── QUICK STRIKE (press & hold 3s, skips Parent Zone/PIN) ──
+// ── GENERIC PRESS & HOLD ──
 let holdTimer=null;
-function startHold(kidName,btn){
-  cancelHold(btn);
+function beginHold(btn,ms,onComplete){
+  endHold(btn);
   btn.classList.add('charging');
   holdTimer=setTimeout(()=>{
     btn.classList.remove('charging');
     holdTimer=null;
+    onComplete();
+  },ms);
+}
+function endHold(btn){
+  if(holdTimer){clearTimeout(holdTimer);holdTimer=null;}
+  if(btn) btn.classList.remove('charging');
+}
+
+// ── QUICK STRIKE (press & hold 3s, skips Parent Zone/PIN) ──
+function startHold(kidName,btn){
+  beginHold(btn,3000,()=>{
     if(navigator.vibrate) navigator.vibrate(80);
     openAction('strike');
     pickKid(kidName);
     document.getElementById('actReason').focus();
-  },3000);
+  });
 }
-function cancelHold(btn){
-  if(holdTimer){clearTimeout(holdTimer);holdTimer=null;}
-  if(btn) btn.classList.remove('charging');
+function cancelHold(btn){ endHold(btn); }
+
+// ── CHORE HOLD-TO-UNDO (prevents accidental un-completing) ──
+const CHORE_HOLD_MS=600;
+function onChoreClick(kidName,choreName,btn){
+  if(btn.dataset.justHeld){delete btn.dataset.justHeld;return;}
+  if(btn.classList.contains('done')) return;
+  doChore(kidName,choreName,btn);
 }
+function onChoreHoldStart(kidName,choreName,btn){
+  if(!btn.classList.contains('done')) return;
+  beginHold(btn,CHORE_HOLD_MS,()=>{
+    if(navigator.vibrate) navigator.vibrate(40);
+    btn.dataset.justHeld='1';
+    undoChore(kidName,choreName,btn);
+  });
+}
+function onChoreHoldEnd(btn){ endHold(btn); }
 function pickKid(n){selKid=n;document.getElementById('pickMyles').classList.toggle('sel',n==='Myles');document.getElementById('pickFinley').classList.toggle('sel',n==='Finley');}
 function closeAction(){document.getElementById('actionOverlay').classList.remove('show');curAction=selKid=null;}
 
